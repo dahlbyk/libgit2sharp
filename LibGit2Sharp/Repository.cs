@@ -430,6 +430,19 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
+        ///   Fetch from the given <see cref="Remote"/>.
+        /// </summary>
+        /// <param name="remote"><see cref="Remote"/> to fetch from.</param>
+        /// <param name="progress">Class to report fetch progress.</param>
+        public void Fetch(Remote remote, FetchProgress progress)
+        {
+            using (RemoteSafeHandle remoteHandle = Proxy.git_remote_load(this.Handle, remote.Name, true))
+            {
+                FetchInternal(remoteHandle, progress);
+            }
+        }
+
+        /// <summary>
         ///   Sets the current <see cref = "Head" /> to the specified commit and optionally resets the <see cref = "Index" /> and
         ///   the content of the working tree to match.
         /// </summary>
@@ -569,6 +582,47 @@ namespace LibGit2Sharp
             {
                 return sr.ReadLine();
             }
+        }
+
+        /// <summary>
+        ///   Internal method that actually performs fetch given a handle to the remote to perform the fetch from.
+        ///   Caller is responsible for dispoising the remote handle.
+        ///   
+        ///   This allows fetching by a named remote or by url.
+        /// </summary>
+        /// <param name="remoteHandle"></param>
+        /// <param name="fetchProgress"></param>
+        private void FetchInternal(RemoteSafeHandle remoteHandle, FetchProgress fetchProgress)
+        {
+            // reset the current progress object
+            fetchProgress.Reset();
+
+            try
+            {
+                // It is OK to pass the reference to the GitCallbacks directly here because libgit2 makes a copy of
+                // the data in the git_remote_callbacks structure. If, in the future, libgit2 changes its implementation
+                // to store a reference to the git_remote_callbacks structure this would introduce a subtle bug
+                // where the managed layer could move the git_remote_callbacks to a different location in memory,
+                // but libgit2 would still reference the old address.
+                NativeMethods.git_remote_set_callbacks(remoteHandle, ref fetchProgress.RemoteCallbacks.GitCallbacks);
+
+                int res = NativeMethods.git_remote_connect(remoteHandle, GitDirection.Fetch);
+                Ensure.Success(res);
+
+                int downloadResult = NativeMethods.git_remote_download(remoteHandle, ref fetchProgress.bytes, fetchProgress.indexerStats);
+                Ensure.Success(downloadResult);
+            }
+            finally
+            {
+                if (remoteHandle != null)
+                {
+                    NativeMethods.git_remote_disconnect(remoteHandle);
+                }
+            }
+
+            // update references
+            int updateTipsResult = NativeMethods.git_remote_update_tips(remoteHandle);
+            Ensure.Success(updateTipsResult);
         }
     }
 }

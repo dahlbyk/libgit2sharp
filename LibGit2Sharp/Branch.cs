@@ -161,6 +161,33 @@ namespace LibGit2Sharp
             get { return repo.Commits.QueryBy(new Filter { Since = this }); }
         }
 
+        /// <summary>
+        ///   Gets the <see cref="Remote"/> tracking this branch
+        /// </summary>
+        /// <returns>The <see cref="Remote"/> tracking this branch if one exists, otherwise returns null.</returns>
+        public virtual Remote ResolveTrackedRemote()
+        {
+            if (IsTracking)
+            {
+                string trackedRemoteName = ResolveTrackedRemoteName();
+                if (string.IsNullOrEmpty(trackedRemoteName))
+                {
+                    return null;
+                }
+
+                return repo.Remotes[trackedRemoteName];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private string ResolveTrackedRemoteName()
+        {
+            return repo.Config.Get<string>("branch", Name, "remote", null) as string;
+        }
+
         private Branch ResolveTrackedBranch()
         {
             using (ReferenceSafeHandle branchPtr = repo.Refs.RetrieveReferencePtr(CanonicalName, false))
