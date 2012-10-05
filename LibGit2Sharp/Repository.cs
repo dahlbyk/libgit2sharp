@@ -433,12 +433,21 @@ namespace LibGit2Sharp
         ///   Fetch from the given <see cref="Remote"/>.
         /// </summary>
         /// <param name="remote"><see cref="Remote"/> to fetch from.</param>
-        /// <param name="progress">Class to report fetch progress.</param>
-        public void Fetch(Remote remote, FetchProgress progress)
+        /// <param name="progress">Datastructure that contains progress information.</param>
+        /// <param name="callbacks">Remote callbacks.</param>
+        public void Fetch(Remote remote, FetchProgress progress, RemoteCallbacks callbacks = null)
         {
+            progress.Reset();
+
             using (RemoteSafeHandle remoteHandle = Proxy.git_remote_load(this.Handle, remote.Name, true))
             {
-                FetchInternal(remoteHandle, progress);
+                GitRemoteCallbacks? gitCallbacks = null;
+                if (callbacks != null)
+                {
+                    gitCallbacks = callbacks.GenerateCallbacks();
+                }
+
+                FetchInternal(remoteHandle, ref progress.bytes, ref progress.IndexerStats.gitIndexerStats, gitCallbacks);
             }
         }
 
@@ -590,13 +599,12 @@ namespace LibGit2Sharp
         ///   
         ///   This allows fetching by a named remote or by url.
         /// </summary>
-        /// <param name="remoteHandle"></param>
-        /// <param name="fetchProgress"></param>
-        private void FetchInternal(RemoteSafeHandle remoteHandle, FetchProgress fetchProgress)
+        /// <param name="remoteHandle">Handle for remote to fetch from.</param>
+        /// <param name="bytes">Number of bytes received.</param>
+        /// <param name="gitIndexerStats">IndexerStats progress structure</param>
+        /// <param name="callbacks">Remote callbacks.</param>
+        private void FetchInternal(RemoteSafeHandle remoteHandle, ref long bytes, ref GitIndexerStats gitIndexerStats, GitRemoteCallbacks? callbacks)
         {
-            // reset the current progress object
-            fetchProgress.Reset();
-
             try
             {
                 // It is OK to pass the reference to the GitCallbacks directly here because libgit2 makes a copy of
@@ -604,25 +612,22 @@ namespace LibGit2Sharp
                 // to store a reference to the git_remote_callbacks structure this would introduce a subtle bug
                 // where the managed layer could move the git_remote_callbacks to a different location in memory,
                 // but libgit2 would still reference the old address.
-                NativeMethods.git_remote_set_callbacks(remoteHandle, ref fetchProgress.RemoteCallbacks.GitCallbacks);
+                if (callbacks.HasValue)
+                {
+                    Proxy.git_remote_set_callbacks(remoteHandle, callbacks.Value);
+                }
 
-                int res = NativeMethods.git_remote_connect(remoteHandle, GitDirection.Fetch);
-                Ensure.Success(res);
+                Proxy.git_remote_connect(remoteHandle, GitDirection.Fetch);
 
-                int downloadResult = NativeMethods.git_remote_download(remoteHandle, ref fetchProgress.bytes, fetchProgress.indexerStats);
-                Ensure.Success(downloadResult);
+                Proxy.git_remote_download(remoteHandle, ref bytes, ref gitIndexerStats);
             }
             finally
             {
-                if (remoteHandle != null)
-                {
-                    NativeMethods.git_remote_disconnect(remoteHandle);
-                }
+                Proxy.git_remote_disconnect(remoteHandle);
             }
 
             // update references
-            int updateTipsResult = NativeMethods.git_remote_update_tips(remoteHandle);
-            Ensure.Success(updateTipsResult);
+            Proxy.git_remote_update_tips(remoteHandle);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace LibGit2Sharp
         /// </summary>
         public IndexerStats()
         {
-            indexerStats = new GitIndexerStats();
+            gitIndexerStats = new GitIndexerStats();
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace LibGit2Sharp
         {
             get
             {
-                return indexerStats.Total;
+                return gitIndexerStats.Total;
             }
         }
 
@@ -37,7 +37,7 @@ namespace LibGit2Sharp
         {
             get
             {
-                return indexerStats.Processed;
+                return gitIndexerStats.Processed;
             }
         }
 
@@ -48,7 +48,7 @@ namespace LibGit2Sharp
         {
             get
             {
-                return indexerStats.Received;
+                return gitIndexerStats.Received;
             }
         }
 
@@ -57,14 +57,14 @@ namespace LibGit2Sharp
         /// </summary>
         internal virtual void Reset()
         {
-            indexerStats.Processed = 0;
-            indexerStats.Total = 0;
-            indexerStats.Received = 0;
+            gitIndexerStats.Processed = 0;
+            gitIndexerStats.Total = 0;
+            gitIndexerStats.Received = 0;
         }
 
         #region Fields
 
-        internal GitIndexerStats indexerStats;
+        internal GitIndexerStats gitIndexerStats;
 
         #endregion
     }

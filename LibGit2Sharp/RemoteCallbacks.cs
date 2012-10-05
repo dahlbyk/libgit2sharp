@@ -16,127 +16,137 @@ namespace LibGit2Sharp
         ///   Constructor.
         /// </summary>
         public RemoteCallbacks()
-        {
-            GitRemoteCallbacks callbacks = new GitRemoteCallbacks();
-            callbacks.progress = ProgressChangedHandler;
-            callbacks.update_tips = UpdateTipsChangedHandler;
-            GitCallbacks = callbacks;
-        }
-
-        #region Events
+        { }
 
         /// <summary>
-        ///   Event raised in response to git_remote_callbacks.progress callback.
+        ///   Delegate definition to handle Progress callbacks.
         /// </summary>
-        public EventHandler<ProgressChangedEventArgs> ProgressChanged;
+        /// <param name="message">Progress message.</param>
+        public delegate void ProgressHandler(string message);
 
         /// <summary>
-        ///   Event raised in response to git_remote_callbacks.completion callback.
+        ///   Delegate definition to handle UpdateTips callbacks
         /// </summary>
-        public EventHandler<CompletionChangedEventArgs> CompletionChanged;
+        /// <param name="referenceName">Name of the updated reference.</param>
+        /// <param name="oldId">Old id of the reference.</param>
+        /// <param name="newId">New id of the reference.</param>
+        /// <returns>Return negative integer 0 to cancel.</returns>
+        public delegate int UpdateTipsHandler(string referenceName, ObjectId oldId, ObjectId newId);
 
         /// <summary>
-        ///   Event raised in response to git_remote_callbacks.update_tips callback.
+        ///   Delegate definition to handle Completion callbacks.
         /// </summary>
-        public EventHandler<UpdateTipsChangedEventArgs> UpdateTipsChanged;
+        /// <param name="RemoteCompletionType"></param>
+        /// <returns></returns>
+        public delegate int CompletionHandler(RemoteCompletionType RemoteCompletionType);
 
+        #region Delegates
+
+        /// <summary>
+        ///   Progress callback. Corresponds to libgit2 progress callback.
+        /// </summary>
+        public ProgressHandler Progress;
+       
+        /// <summary>
+        ///   UpdateTips callback. Corresponds to libgit2 update_tips callback.
+        /// </summary>
+        public UpdateTipsHandler UpdateTips;
+        
+        /// <summary>
+        ///   Completion callback. Corresponds to libgit2 Completion callback.
+        /// </summary>
+        public CompletionHandler Completion;
+        
         #endregion
 
-        internal GitRemoteCallbacks GitCallbacks;
+        internal GitRemoteCallbacks GenerateCallbacks()
+        {
+            GitRemoteCallbacks callbacks = new GitRemoteCallbacks();
+
+            if (Progress != null)
+            {
+                callbacks.progress = GitProgressHandler;
+            }
+
+            if (UpdateTips != null)
+            {
+                callbacks.update_tips = GitUpdateTipsHandler;
+            }
+
+            if (Completion != null)
+            {
+                callbacks.completion = GitCompletionHandler;
+            }
+
+            return callbacks;
+        }
 
         #region Handlers to respond to callbacks raised by libgit2
 
-        internal void ProgressChangedHandler(IntPtr str, int len, IntPtr data)
+        /// <summary>
+        ///   Handler for libgit2 Progress callback. Converts values
+        ///   received from libgit2 callback to more suitable types
+        ///   and calls delegate provided by LibGit2Sharp consumer.
+        /// </summary>
+        /// <param name="str">IntPtr to string from libgit2</param>
+        /// <param name="len">length of string</param>
+        /// <param name="data"></param>
+        internal void GitProgressHandler(IntPtr str, int len, IntPtr data)
         {
-            EventHandler<ProgressChangedEventArgs> eh = ProgressChanged;
+            ProgressHandler onProgress = Progress;
 
-            if (eh != null)
+            if (onProgress != null)
             {
                 string message = Utf8Marshaler.FromNative(str, (uint) len);
-                eh(this, new ProgressChangedEventArgs(message));
+                onProgress(message);
             }
         }
 
-        internal int UpdateTipsChangedHandler(IntPtr str, ref GitOid oldId, ref GitOid newId, IntPtr data)
+        /// <summary>
+        ///   Handler for libgit2 update_tips callback. Converts values
+        ///   received from libgit2 callback to more suitable types
+        ///   and calls delegate provided by LibGit2Sharp consumer.
+        /// </summary>
+        /// <param name="str">IntPtr to string</param>
+        /// <param name="oldId">Old reference ID</param>
+        /// <param name="newId">New referene ID</param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal int GitUpdateTipsHandler(IntPtr str, ref GitOid oldId, ref GitOid newId, IntPtr data)
         {
-            EventHandler<UpdateTipsChangedEventArgs> eh = UpdateTipsChanged;
-            if (eh != null)
+            UpdateTipsHandler onUpdateTips = UpdateTips;
+            int result = 0;
+
+            if (onUpdateTips != null)
             {
                 string refName = Utf8Marshaler.FromNative(str);
-                eh(this, new UpdateTipsChangedEventArgs(refName, new ObjectId(oldId), new ObjectId(newId)));
+                result = onUpdateTips(refName, new ObjectId(oldId), new ObjectId(newId));
             }
 
-            return 0;
+            return result;
+        }
+
+        /// <summary>
+        ///   Handler for libgit2 completion callback. Converts values
+        ///   received from libgit2 callback to more suitable types
+        ///   and calls delegate provided by LibGit2Sharp consumer.
+        /// </summary>
+        /// <param name="remoteCompletionType"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        internal int GitCompletionHandler(RemoteCompletionType remoteCompletionType, IntPtr data)
+        {
+            CompletionHandler completion = Completion;
+            int result = 0;
+
+            if (completion != null)
+            {
+                result = completion(remoteCompletionType);
+            }
+
+            return result;
         }
 
         #endregion
-    }
-
-    /// <summary>
-    ///   Event args containing information on a remote progress.
-    ///   Raised in response to git_remote_callbacks.progress callback.
-    /// </summary>
-    public class ProgressChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        ///   Constructor.
-        /// </summary>
-        protected ProgressChangedEventArgs()
-        {
-            Message = string.Empty;
-        }
-
-        internal ProgressChangedEventArgs(string message)
-        {
-            Message = message;
-        }
-
-        /// <summary>
-        ///   Message contained in the git_remote_callbacks.progress callback.
-        /// </summary>
-        public virtual string Message { get; private set; }
-    }
-
-    /// <summary>
-    ///   Event args containing information on a remote completion.
-    ///   Raised in response to git_remote_callbacks.completion callback.
-    /// </summary>
-    public class CompletionChangedEventArgs : EventArgs
-    {
-    }
-
-    /// <summary>
-    ///   Event args containing information on the updated reference tip.
-    ///   Raised in response to git_remote_callbacks.update_tips callback.
-    /// </summary>
-    public class UpdateTipsChangedEventArgs : EventArgs
-    {
-        /// <summary>
-        ///   Constructor.
-        /// </summary>
-        protected UpdateTipsChangedEventArgs()
-        { }
-
-        internal UpdateTipsChangedEventArgs(string name, ObjectId oldId, ObjectId newId)
-        {
-            ReferenceName = name;
-            OldId = oldId;
-            NewId = newId;
-        }
-
-        /// <summary>
-        /// The name of the reference being updated.
-        /// </summary>
-        public virtual string ReferenceName { get; private set; }
-
-        /// <summary>
-        ///   The old ID of the reference.
-        /// </summary>
-        public virtual ObjectId OldId { get; private set; }
-
-        /// <summary>
-        ///   The new ID of the reference.
-        /// </summary>
-        public virtual ObjectId NewId { get; private set; }
     }
 }

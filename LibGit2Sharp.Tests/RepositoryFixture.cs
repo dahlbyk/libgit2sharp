@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using LibGit2Sharp.Core.Compat;
 using LibGit2Sharp.Tests.TestHelpers;
 using Xunit;
 using Xunit.Extensions;
@@ -88,25 +89,43 @@ namespace LibGit2Sharp.Tests
             using (var repo = Repository.Init(scd.RootedDirectoryPath))
             {
                 string remoteName = "testRepository";
-
-                TestRemoteExpectedInfo expectedResults = new TestRemoteExpectedInfo(remoteName);
-                RemoteUpdateTipsCallbackHelper helper = new RemoteUpdateTipsCallbackHelper(expectedResults.ExpectedReferenceCallbacks);
-                
                 Remote remote = repo.Remotes.Add(remoteName, url);
-                
-                FetchProgress progress = new FetchProgress();
-                progress.RemoteCallbacks.UpdateTipsChanged += new System.EventHandler<UpdateTipsChangedEventArgs>(helper.RemoteUpdateTipsHandler);
-                repo.Fetch(remote, progress);
 
-                Assert.Equal(expectedResults.ExpectedBranchTips.Count, repo.Branches.Count());
-                foreach (KeyValuePair<string, string> kvp in expectedResults.ExpectedBranchTips)
+                // Set up structures for the expected results
+                // and verifying the RemoteUpdateTips callback.
+                TestRemoteExpectedInfo expectedResults = new TestRemoteExpectedInfo(remoteName);
+                ExpectedFetchState expectedFetchState = new ExpectedFetchState(expectedResults);
+                
+                RemoteCallbacks remoteCallbacks = new RemoteCallbacks();
+                remoteCallbacks.UpdateTips = expectedFetchState.RemoteUpdateTipsHandler;
+
+                FetchProgress progress = new FetchProgress();
+
+                // Perform the actual fetch
+                repo.Fetch(remote, progress, remoteCallbacks);
+
+                // Verify the expected branches have been created and
+                // point to the expected commits.
+                Assert.Equal(expectedFetchState.ExpectedBranchTips.Count, repo.Branches.Count());
+                foreach (KeyValuePair<string, ObjectId> kvp in expectedFetchState.ExpectedBranchTips)
                 {
                     Branch branch = repo.Branches[kvp.Key];
                     Assert.NotNull(branch);
-                    Assert.Equal(kvp.Value, branch.Tip.Sha);
+                    Assert.Equal(kvp.Value, branch.Tip.Id);
                 }
 
-                helper.CheckUpdatedReferences();
+                // verify the created tags
+                Assert.Equal(expectedFetchState.ExpectedTags.Count, repo.Tags.Count());
+                foreach (KeyValuePair<string, ObjectId> kvp in expectedFetchState.ExpectedTags)
+                {
+                    Tag tag = repo.Tags[kvp.Key];
+                    Assert.NotNull(tag);
+                    Assert.NotNull(tag.Target);
+                    Assert.Equal(kvp.Value, tag.Target.Id);
+                }
+
+                // Verify the expected 
+                expectedFetchState.CheckUpdatedReferences();
             }
         }
 
@@ -447,5 +466,106 @@ namespace LibGit2Sharp.Tests
                 Assert.False(repo.Info.IsHeadOrphaned);
             }
         }
+
+        #region ExpectedFetchState
+
+        /// <summary>
+        ///   Class to verify the expected state after fetching github.com/nulltoken/TestGitRepository into an empty repository.
+        ///   Includes the expected reference callbacks and the expected branches / tags after fetch is completed.
+        /// </summary>
+        private class ExpectedFetchState
+        {
+            private Dictionary<string, Tuple<ObjectId, ObjectId>> ExpectedReferenceUpdates;
+            private Dictionary<string, Tuple<ObjectId, ObjectId>> ObservedReferenceUpdates = new Dictionary<string, Tuple<ObjectId, ObjectId>>();
+            
+            /// <summary>
+            ///   Expected branch tips after fetching into an empty repository.
+            /// </summary>
+            internal Dictionary<string, ObjectId> ExpectedBranchTips = new Dictionary<string, ObjectId>();
+
+            /// <summary>
+            ///   Expected tags after fetching into an empty repository
+            /// </summary>
+            internal Dictionary<string, ObjectId> ExpectedTags = new Dictionary<string, ObjectId>();
+
+            /// <summary>
+            ///   Constructor.
+            /// </summary>
+            /// <param name="remoteInfo">The expected state of the remote that we will be fetching from.</param>
+            public ExpectedFetchState(TestRemoteExpectedInfo remoteInfo)
+            {
+                // Generate list of expected branch references
+                // we expect an update callback for each of the branches.
+                string referenceUpdateBase = "refs/remotes/" + remoteInfo.RemoteName + "/";
+                foreach (KeyValuePair<string, ObjectId> kvp in remoteInfo.BranchTips)
+                {
+                    ExpectedBranchTips.Add(referenceUpdateBase + kvp.Key, kvp.Value);
+                }
+
+                // Generate list of expected tags.
+                string[] expectedTagNames = { "blob", "commit_tree" };
+                string tagReferenceBase = "refs/tags/";
+                foreach (string tagName in expectedTagNames)
+                {
+                    ObjectId oid = remoteInfo.Tags[tagName];
+                    ExpectedTags.Add(tagReferenceBase + tagName, oid);
+                }
+
+                // Generate list of expected reference updates.
+                ExpectedReferenceUpdates = new Dictionary<string, Tuple<ObjectId, ObjectId>>();
+
+                // Add expected update callbacks for each branch
+                foreach (KeyValuePair<string, ObjectId> kvp in ExpectedBranchTips)
+                {
+                    ExpectedReferenceUpdates.Add(kvp.Key, new Tuple<ObjectId, ObjectId>(ObjectId.Zero, kvp.Value));
+                }
+
+                // Add expected callbacks for tag reference updates.
+                foreach (KeyValuePair<string, ObjectId> kvp in ExpectedTags)
+                {
+                    ExpectedReferenceUpdates.Add(kvp.Key, new Tuple<ObjectId, ObjectId>(ObjectId.Zero, kvp.Value));
+                }
+            }
+
+            /// <summary>
+            ///   Handler to hook up to UpdateTips callback.
+            /// </summary>
+            /// <param name="referenceName">Name of reference being updated.</param>
+            /// <param name="oldId">Old ID of reference.</param>
+            /// <param name="newId">New ID of reference.</param>
+            /// <returns></returns>
+            public int RemoteUpdateTipsHandler(string referenceName, ObjectId oldId, ObjectId newId)
+            {
+                // assert that we have not seen this reference before
+                Assert.DoesNotContain(referenceName, ObservedReferenceUpdates.Keys);
+                ObservedReferenceUpdates.Add(referenceName, new Tuple<ObjectId, ObjectId>(oldId, newId));
+
+                // verify that this reference is in the list of expected references
+                Tuple<ObjectId, ObjectId> reference;
+                bool isReferenceFound = ExpectedReferenceUpdates.TryGetValue(referenceName, out reference);
+                Assert.True(isReferenceFound, string.Format("Could not find the reference {0} in the list of expected reference updates.", referenceName));
+
+                // verify that the old / new Object IDs
+                if (isReferenceFound)
+                {
+                    Assert.Equal(reference.Item1, oldId);
+                    Assert.Equal(reference.Item2, newId);
+                }
+
+                return 0;
+            }
+
+            /// <summary>
+            ///   Check that all expected references have been updated.
+            /// </summary>
+            public void CheckUpdatedReferences()
+            {
+                // we have already verified that all observed reference updates are expected,
+                // verify that we have seen all expected reference updates
+                Assert.Equal(ExpectedReferenceUpdates.Count, ObservedReferenceUpdates.Count);
+            }
+        }
+
+        #endregion
     }
 }

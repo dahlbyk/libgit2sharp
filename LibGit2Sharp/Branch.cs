@@ -162,30 +162,22 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
-        ///   Gets the <see cref="Remote"/> tracking this branch
+        ///   Gets the configured <see cref="Remote"/> to fetch from and push to.
         /// </summary>
-        /// <returns>The <see cref="Remote"/> tracking this branch if one exists, otherwise returns null.</returns>
-        public virtual Remote ResolveTrackedRemote()
+        public virtual Remote Remote
         {
-            if (IsTracking)
+            get
             {
-                string trackedRemoteName = ResolveTrackedRemoteName();
-                if (string.IsNullOrEmpty(trackedRemoteName))
+                string remoteName = repo.Config.Get<string>("branch", Name, "remote", null);
+                Remote remote = null;
+
+                if (!string.IsNullOrEmpty(remoteName))
                 {
-                    return null;
+                    remote = repo.Remotes[remoteName];
                 }
 
-                return repo.Remotes[trackedRemoteName];
+                return remote;
             }
-            else
-            {
-                return null;
-            }
-        }
-
-        private string ResolveTrackedRemoteName()
-        {
-            return repo.Config.Get<string>("branch", Name, "remote", null) as string;
         }
 
         private Branch ResolveTrackedBranch()

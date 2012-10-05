@@ -1000,6 +1000,32 @@ namespace LibGit2Sharp.Core
             }
         }
 
+        public static void git_remote_connect(RemoteSafeHandle remote, GitDirection direction)
+        {
+            using (ThreadAffinity())
+            {
+                int res = NativeMethods.git_remote_connect(remote, direction);
+                Ensure.Success(res);
+            }
+        }
+
+        public static void git_remote_disconnect(RemoteSafeHandle remote)
+        {
+            using (ThreadAffinity())
+            {
+                NativeMethods.git_remote_disconnect(remote);
+            }
+        }
+
+        public static void git_remote_download(RemoteSafeHandle remote, ref long bytes, ref GitIndexerStats indexerStats)
+        {
+            using (ThreadAffinity())
+            {
+                int res = NativeMethods.git_remote_download(remote, ref bytes, ref indexerStats);
+                Ensure.Success(res);
+            }
+        }
+
         public static void git_remote_free(IntPtr remote)
         {
             NativeMethods.git_remote_free(remote);
@@ -1056,6 +1082,23 @@ namespace LibGit2Sharp.Core
             using (ThreadAffinity())
             {
                 int res = NativeMethods.git_remote_save(remote);
+                Ensure.Success(res);
+            }
+        }
+
+        public static void git_remote_set_callbacks(RemoteSafeHandle remote, GitRemoteCallbacks callbacks)
+        {
+            using (ThreadAffinity())
+            {
+                NativeMethods.git_remote_set_callbacks(remote, ref callbacks);
+            }
+        }
+
+        public static void git_remote_update_tips(RemoteSafeHandle remote)
+        {
+            using (ThreadAffinity())
+            {
+                int res = NativeMethods.git_remote_update_tips(remote);
                 Ensure.Success(res);
             }
         }

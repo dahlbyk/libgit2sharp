@@ -3,20 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace LibGit2Sharp
 {
     /// <summary>
     ///   Contains data regarding fetch progress.
     /// </summary>
-    public class FetchProgress : IndexerStats
+    public class FetchProgress
     {
         /// <summary>
         ///   Fetch progress constructor.
         /// </summary>
         public FetchProgress()
         {
-            RemoteCallbacks = new RemoteCallbacks();
+            IndexerStats = new IndexerStats();
         }
 
         /// <summary>
@@ -26,18 +27,19 @@ namespace LibGit2Sharp
         {
             get
             {
-                return bytes;
+                // read the bytes atomically
+                return Interlocked.Read(ref bytes);
             }
         }
 
         /// <summary>
-        ///   The events fired in response to callbacks from libgit2.
+        ///   The IndexerStats
         /// </summary>
-        public RemoteCallbacks RemoteCallbacks { get; set; }
-
-        internal override void Reset()
+        public IndexerStats IndexerStats { get;  private set; }
+        
+        internal void Reset()
         {
-            base.Reset();
+            IndexerStats.Reset();
             bytes = 0;
         }
 

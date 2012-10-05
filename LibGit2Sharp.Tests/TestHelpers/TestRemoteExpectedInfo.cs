@@ -12,27 +12,30 @@ namespace LibGit2Sharp.Tests.TestHelpers
     /// </summary>
     public class TestRemoteExpectedInfo
     {
-        public Dictionary<string, string> ExpectedBranchTips = new Dictionary<string, string>();
+        /// <summary>
+        ///   Expected Branch tips of the remote repository.
+        /// </summary>
+        public Dictionary<string, ObjectId> BranchTips = new Dictionary<string, ObjectId>();
 
-        public Dictionary<string, string> ExpectedTags = new Dictionary<string, string>();
+        /// <summary>
+        ///   Expected Tags of the remote repository.
+        /// </summary>
+        public Dictionary<string, ObjectId> Tags = new Dictionary<string, ObjectId>();
 
-        public Dictionary<string, Tuple<ObjectId, ObjectId>> ExpectedReferenceCallbacks = new Dictionary<string, Tuple<ObjectId, ObjectId>>();
+        public string RemoteName { get; private set; }
 
         public TestRemoteExpectedInfo(string remoteName)
         {
-            ExpectedBranchTips.Add(remoteName + "/" + "master", "49322bb17d3acc9146f98c97d078513228bbf3c0");
-            ExpectedBranchTips.Add(remoteName + "/" + "first-merge", "0966a434eb1a025db6b71485ab63a3bfbea520b6");
-            ExpectedBranchTips.Add(remoteName + "/" + "no-parent", "42e4e7c5e507e113ebbb7801b16b52cf867b7ce1");
+            RemoteName = remoteName;
 
-            ExpectedTags.Add("annotated_tag", "c070ad8c08840c8116da865b2d65593a6bb9cd2a");
-            ExpectedTags.Add("blob", "55a1a760df4b86a02094a904dfa511deb5655905");
-            ExpectedTags.Add("commit_tree", "8f50ba15d49353813cc6e20298002c0d17b0a9ee");
-            ExpectedTags.Add("nearly-dangling", "6e0c7bdb9b4ed93212491ee778ca1c65047cab4e");
+            BranchTips.Add("master", new ObjectId("49322bb17d3acc9146f98c97d078513228bbf3c0"));
+            BranchTips.Add("first-merge", new ObjectId("0966a434eb1a025db6b71485ab63a3bfbea520b6"));
+            BranchTips.Add("no-parent", new ObjectId("42e4e7c5e507e113ebbb7801b16b52cf867b7ce1"));
 
-            string referenceUpdateBase = "refs/remotes/" + remoteName + "/";
-            ExpectedReferenceCallbacks.Add(referenceUpdateBase + "master", new Tuple<ObjectId, ObjectId>(new ObjectId("0000000000000000000000000000000000000000"), new ObjectId("49322bb17d3acc9146f98c97d078513228bbf3c0")));
-            ExpectedReferenceCallbacks.Add(referenceUpdateBase + "first-merge", new Tuple<ObjectId, ObjectId>(new ObjectId("0000000000000000000000000000000000000000"), new ObjectId("0966a434eb1a025db6b71485ab63a3bfbea520b6")));
-            ExpectedReferenceCallbacks.Add(referenceUpdateBase + "no-parent", new Tuple<ObjectId, ObjectId>(new ObjectId("0000000000000000000000000000000000000000"), new ObjectId("42e4e7c5e507e113ebbb7801b16b52cf867b7ce1")));
+            Tags.Add("annotated_tag", new ObjectId("c070ad8c08840c8116da865b2d65593a6bb9cd2a"));
+            Tags.Add("blob", new ObjectId("55a1a760df4b86a02094a904dfa511deb5655905"));
+            Tags.Add("commit_tree", new ObjectId("8f50ba15d49353813cc6e20298002c0d17b0a9ee"));
+            Tags.Add("nearly-dangling", new ObjectId("6e0c7bdb9b4ed93212491ee778ca1c65047cab4e"));
         }
     }
 }

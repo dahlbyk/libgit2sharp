@@ -221,15 +221,24 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanResolveTrackedRemote()
+        public void CanResolveRemote()
         {
             using (var repo = new Repository(StandardTestRepoPath))
             {
+                // Verify that we get the correct remote when there
+                // is a configured remote to fetch from and pull to
                 Branch master = repo.Branches["master"];
-                Assert.Equal(repo.Remotes["origin"], master.ResolveTrackedRemote());
+                Assert.Equal(repo.Remotes["origin"], master.Remote);
 
-                Branch test = repo.Branches["test"];
-                Assert.Null(test);
+                // Verify that we get no remote when the branch does  
+                // not have a congured remote to fetch from and pull to
+                Branch test = repo.Branches["i-do-numbers"];
+                Assert.Null(test.Remote);
+
+                // Verify behavior when querying for the remote
+                // of a local-tracking branch.
+                Branch trackLocal = repo.Branches["track-local"];
+                Assert.Null(trackLocal.Remote);
             }
         }
 
