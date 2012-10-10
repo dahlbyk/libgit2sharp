@@ -15,8 +15,12 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Constructor.
         /// </summary>
-        public RemoteCallbacks()
-        { }
+        public RemoteCallbacks(ProgressHandler onProgress = null, UpdateTipsHandler onUpdateTips = null, CompletionHandler onCompletion = null)
+        {
+            this.onProgress = onProgress;
+            this.onUpdateTips = onUpdateTips;
+            this.onCompletion = onCompletion;
+        }
 
         /// <summary>
         ///   Delegate definition to handle Progress callbacks.
@@ -45,17 +49,17 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Progress callback. Corresponds to libgit2 progress callback.
         /// </summary>
-        public ProgressHandler Progress;
+        private readonly ProgressHandler onProgress;
        
         /// <summary>
         ///   UpdateTips callback. Corresponds to libgit2 update_tips callback.
         /// </summary>
-        public UpdateTipsHandler UpdateTips;
+        private readonly UpdateTipsHandler onUpdateTips;
         
         /// <summary>
         ///   Completion callback. Corresponds to libgit2 Completion callback.
         /// </summary>
-        public CompletionHandler Completion;
+        private readonly CompletionHandler onCompletion;
         
         #endregion
 
@@ -63,17 +67,17 @@ namespace LibGit2Sharp
         {
             GitRemoteCallbacks callbacks = new GitRemoteCallbacks();
 
-            if (Progress != null)
+            if (onProgress != null)
             {
                 callbacks.progress = GitProgressHandler;
             }
 
-            if (UpdateTips != null)
+            if (onUpdateTips != null)
             {
                 callbacks.update_tips = GitUpdateTipsHandler;
             }
 
-            if (Completion != null)
+            if (onCompletion != null)
             {
                 callbacks.completion = GitCompletionHandler;
             }
@@ -93,13 +97,8 @@ namespace LibGit2Sharp
         /// <param name="data"></param>
         internal void GitProgressHandler(IntPtr str, int len, IntPtr data)
         {
-            ProgressHandler onProgress = Progress;
-
-            if (onProgress != null)
-            {
-                string message = Utf8Marshaler.FromNative(str, (uint) len);
-                onProgress(message);
-            }
+            string message = Utf8Marshaler.FromNative(str, (uint) len);
+            onProgress(message);
         }
 
         /// <summary>
@@ -114,16 +113,8 @@ namespace LibGit2Sharp
         /// <returns></returns>
         internal int GitUpdateTipsHandler(IntPtr str, ref GitOid oldId, ref GitOid newId, IntPtr data)
         {
-            UpdateTipsHandler onUpdateTips = UpdateTips;
-            int result = 0;
-
-            if (onUpdateTips != null)
-            {
-                string refName = Utf8Marshaler.FromNative(str);
-                result = onUpdateTips(refName, new ObjectId(oldId), new ObjectId(newId));
-            }
-
-            return result;
+            string refName = Utf8Marshaler.FromNative(str);
+            return onUpdateTips(refName, new ObjectId(oldId), new ObjectId(newId));
         }
 
         /// <summary>
@@ -136,15 +127,7 @@ namespace LibGit2Sharp
         /// <returns></returns>
         internal int GitCompletionHandler(RemoteCompletionType remoteCompletionType, IntPtr data)
         {
-            CompletionHandler completion = Completion;
-            int result = 0;
-
-            if (completion != null)
-            {
-                result = completion(remoteCompletionType);
-            }
-
-            return result;
+            return onCompletion(remoteCompletionType);
         }
 
         #endregion
