@@ -434,18 +434,22 @@ namespace LibGit2Sharp
         /// </summary>
         /// <param name="remote"><see cref="Remote"/> to fetch from.</param>
         /// <param name="progress">Datastructure that contains progress information.</param>
-        /// <param name="callbacks">Remote callbacks.</param>
-        public void Fetch(Remote remote, FetchProgress progress, RemoteCallbacks callbacks = null)
+        /// <param name="onProgress">Callback to report progress.</param>
+        /// <param name="onUpdateTips">Callback to report updated references.</param>
+        /// <param name="onCompletion">Callback to report a fetch operation (download, indexing) has finished.</param>
+        public void Fetch(Remote remote, FetchProgress progress = null,
+                          RemoteCallbacks.ProgressHandler onProgress = null,
+                          RemoteCallbacks.UpdateTipsHandler onUpdateTips = null,
+                          RemoteCallbacks.CompletionHandler onCompletion = null)
         {
+            progress = progress ?? new FetchProgress();
+
             progress.Reset();
 
             using (RemoteSafeHandle remoteHandle = Proxy.git_remote_load(this.Handle, remote.Name, true))
             {
-                GitRemoteCallbacks? gitCallbacks = null;
-                if (callbacks != null)
-                {
-                    gitCallbacks = callbacks.GenerateCallbacks();
-                }
+                var callbacks = new RemoteCallbacks(onProgress, onUpdateTips, onCompletion);
+                var gitCallbacks = callbacks.GenerateCallbacks();
 
                 FetchInternal(remoteHandle, ref progress.bytes, ref progress.IndexerStats.gitIndexerStats, gitCallbacks);
             }

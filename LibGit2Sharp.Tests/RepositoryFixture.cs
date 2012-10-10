@@ -96,12 +96,8 @@ namespace LibGit2Sharp.Tests
                 TestRemoteExpectedInfo expectedResults = new TestRemoteExpectedInfo(remoteName);
                 ExpectedFetchState expectedFetchState = new ExpectedFetchState(expectedResults);
                 
-                RemoteCallbacks remoteCallbacks = new RemoteCallbacks(onUpdateTips: expectedFetchState.RemoteUpdateTipsHandler);
-
-                FetchProgress progress = new FetchProgress();
-
                 // Perform the actual fetch
-                repo.Fetch(remote, progress, remoteCallbacks);
+                repo.Fetch(remote, onUpdateTips: expectedFetchState.RemoteUpdateTipsHandler);
 
                 // Verify the expected branches have been created and
                 // point to the expected commits.

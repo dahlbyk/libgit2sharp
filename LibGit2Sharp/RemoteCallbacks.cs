@@ -15,7 +15,7 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Constructor.
         /// </summary>
-        public RemoteCallbacks(ProgressHandler onProgress = null, UpdateTipsHandler onUpdateTips = null, CompletionHandler onCompletion = null)
+        internal RemoteCallbacks(ProgressHandler onProgress = null, UpdateTipsHandler onUpdateTips = null, CompletionHandler onCompletion = null)
         {
             this.onProgress = onProgress;
             this.onUpdateTips = onUpdateTips;
