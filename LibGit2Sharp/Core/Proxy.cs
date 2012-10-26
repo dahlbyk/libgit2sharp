@@ -257,7 +257,12 @@ namespace LibGit2Sharp.Core
 
         public static int git_commit_parentcount(ObjectSafeWrapper obj)
         {
-            return (int)NativeMethods.git_commit_parentcount(obj.ObjectPtr);
+            return git_commit_parentcount(obj.ObjectPtr);
+        }
+
+        public static int git_commit_parentcount(GitObjectSafeHandle obj)
+        {
+            return (int)NativeMethods.git_commit_parentcount(obj);
         }
 
         public static ObjectId git_commit_tree_oid(GitObjectSafeHandle obj)
