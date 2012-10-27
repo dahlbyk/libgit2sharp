@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using LibGit2Sharp.Tests.TestHelpers;
 using Xunit;
@@ -9,6 +11,63 @@ namespace LibGit2Sharp.Tests
     public class BranchFixture : BaseFixture
     {
         private readonly string[] expectedBranches = new[] { "br2", "master", "packed", "packed-test", "test", };
+
+        [Fact]
+        public void Parents()
+        {
+            using (var repo = new Repository(@"D:\temp\linux\linux"))
+            {
+                int max = 42000;
+                var commits = new List<NewCommit>();
+                int iter = 0;
+                var s = new Stack<ObjectId>();
+
+                var id = repo.Head.Tip.Id;
+
+                s.Push(id);
+
+                while (s.Count > 0 && iter < max)
+                {
+                    var c = new NewCommit(repo, s.Pop());
+
+                    var p = c.Parents.FirstOrDefault();
+                    s.Push(p.Id);
+
+                    commits.Add(new NewCommit(repo, c.Id));
+                    iter++;
+                }
+
+                s.Clear();
+                s = null;
+
+                GC.Collect(); 
+                
+                MaxNumberOfParents(commits, x => x.ParentsCount);
+                GC.Collect(); 
+
+                MaxNumberOfParents(commits, x => x.Parents.Count());
+            }
+        }
+
+        private void MaxNumberOfParents(List<NewCommit> commits, Func<NewCommit, int> parentCountEvaluator)
+        {
+            int maxP = -1;
+
+            var sw = Stopwatch.StartNew();
+            foreach (var newCommit in commits)
+            {
+                int count = parentCountEvaluator(newCommit);
+                if (maxP > count)
+                    continue;
+
+                maxP = count;
+            }
+            sw.Stop();
+
+            Console.WriteLine("Commits: {0}", commits.Count);
+            Console.WriteLine("Time: {0}", sw.ElapsedMilliseconds);
+            Console.WriteLine("MaxParents: {0}", maxP);
+        }
 
         [Theory]
         [InlineData("unit_test")]

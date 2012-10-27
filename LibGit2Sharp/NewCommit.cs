@@ -12,7 +12,7 @@ namespace LibGit2Sharp
         private readonly LazyGroup group1;
         private readonly LazyGroup group2;
 
-        private readonly Lazy<IEnumerable<NewCommit>> parents;
+        private readonly Lazy<IList<NewCommit>> parents;
         private readonly LazyProperty<string> _lazyMessage;
         private readonly LazyProperty<string> _lazyEncoding;
         private readonly LazyProperty<Signature> _lazyAuthor;
@@ -22,7 +22,7 @@ namespace LibGit2Sharp
         protected NewCommit()
         {}
 
-        protected NewCommit(Repository repo, ObjectId id)
+        public NewCommit(Repository repo, ObjectId id)
             : base(id)
         {
             this.repo = repo;
@@ -36,7 +36,7 @@ namespace LibGit2Sharp
             _lazyEncoding = group2.AddLazy<string>(RetrieveEncodingOf);
             _lazyCommitter = group2.AddLazy<Signature>(Proxy.git_commit_committer);
 
-            parents = new Lazy<IEnumerable<NewCommit>>(() => RetrieveParentsOfCommit(id));
+            parents = new Lazy<IList<NewCommit>>(() => RetrieveParentsOfCommit(id));
         }
 
         // Lazy batch loaded properies
@@ -62,8 +62,10 @@ namespace LibGit2Sharp
             return encoding ?? "UTF-8";
         }
 
-        private IEnumerable<NewCommit> RetrieveParentsOfCommit(ObjectId oid)
+        private IList<NewCommit> RetrieveParentsOfCommit(ObjectId oid)
         {
+            var parents = new List<NewCommit>();
+
             using (var obj = new ObjectSafeWrapper(oid, repo.Handle))
             {
                 int parentsCount = Proxy.git_commit_parentcount(obj);
@@ -71,9 +73,11 @@ namespace LibGit2Sharp
                 for (uint i = 0; i < parentsCount; i++)
                 {
                     ObjectId parentCommitId = Proxy.git_commit_parent_oid(obj.ObjectPtr, i);
-                    yield return new NewCommit(repo, parentCommitId);
+                    parents.Add(new NewCommit(repo, parentCommitId));
                 }
             }
+
+            return parents;
         }
     }
 }
