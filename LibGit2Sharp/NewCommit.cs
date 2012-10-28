@@ -8,21 +8,22 @@ namespace LibGit2Sharp
 {
     internal class ParentsList : IList<NewCommit>
     {
-        private Lazy<IList<NewCommit>> parents;
-        private Lazy<int> count; 
+        private readonly Lazy<IList<NewCommit>> _parents;
+        private readonly Lazy<int> _count;
+
         public ParentsList(Repository repo, NewCommit c)
         {
-            parents = new Lazy<IList<NewCommit>>(() => RetrieveParentsOfCommit(repo, c.Id));
-            count = new Lazy<int>(() => Proxy.git_commit_parentcount(repo.Handle, c.Id));
+            _count = new Lazy<int>(() => Proxy.git_commit_parentcount(repo.Handle, c.Id));
+            _parents = new Lazy<IList<NewCommit>>(() => RetrieveParentsOfCommit(repo, c.Id, _count));
         }
 
-        private IList<NewCommit> RetrieveParentsOfCommit(Repository repo, ObjectId oid)
+        private IList<NewCommit> RetrieveParentsOfCommit(Repository repo, ObjectId oid, Lazy<int> pCount)
         {
             var parents = new List<NewCommit>();
 
             using (var obj = new ObjectSafeWrapper(oid, repo.Handle))
             {
-                int parentsCount = Proxy.git_commit_parentcount(obj);
+                int parentsCount = pCount.Value;
 
                 for (uint i = 0; i < parentsCount; i++)
                 {
@@ -71,7 +72,7 @@ namespace LibGit2Sharp
 
         public int Count
         {
-            get { return count.Value; }
+            get { return _count.Value; }
         }
 
         public bool IsReadOnly
@@ -96,7 +97,7 @@ namespace LibGit2Sharp
 
         public NewCommit this[int index]
         {
-            get { return parents.Value[index]; }
+            get { return _parents.Value[index]; }
             set { throw new System.NotImplementedException(); }
         }
     }
