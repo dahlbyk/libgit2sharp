@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using LibGit2Sharp.Core;
 using LibGit2Sharp.Core.Compat;
@@ -5,6 +6,101 @@ using LibGit2Sharp.Core.Handles;
 
 namespace LibGit2Sharp
 {
+    internal class ParentsList : IList<NewCommit>
+    {
+        private Lazy<IList<NewCommit>> parents;
+        private Lazy<int> count; 
+        public ParentsList(Repository repo, NewCommit c)
+        {
+            parents = new Lazy<IList<NewCommit>>(() => RetrieveParentsOfCommit(repo, c.Id));
+            count = new Lazy<int>(() => Proxy.git_commit_parentcount(repo.Handle, c.Id));
+        }
+
+        private IList<NewCommit> RetrieveParentsOfCommit(Repository repo, ObjectId oid)
+        {
+            var parents = new List<NewCommit>();
+
+            using (var obj = new ObjectSafeWrapper(oid, repo.Handle))
+            {
+                int parentsCount = Proxy.git_commit_parentcount(obj);
+
+                for (uint i = 0; i < parentsCount; i++)
+                {
+                    ObjectId parentCommitId = Proxy.git_commit_parent_oid(obj.ObjectPtr, i);
+                    parents.Add(new NewCommit(repo, parentCommitId));
+                }
+            }
+
+            return parents;
+        }
+
+        public IEnumerator<NewCommit> GetEnumerator()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        public void Add(NewCommit item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool Contains(NewCommit item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void CopyTo(NewCommit[] array, int arrayIndex)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool Remove(NewCommit item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int Count
+        {
+            get { return count.Value; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { throw new System.NotImplementedException(); }
+        }
+
+        public int IndexOf(NewCommit item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Insert(int index, NewCommit item)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public NewCommit this[int index]
+        {
+            get { return parents.Value[index]; }
+            set { throw new System.NotImplementedException(); }
+        }
+    }
+
     public class NewCommit : GitObject
     {
         private readonly Repository repo;
@@ -12,7 +108,7 @@ namespace LibGit2Sharp
         private readonly LazyGroup group1;
         private readonly LazyGroup group2;
 
-        private readonly Lazy<IList<NewCommit>> parents;
+        private readonly IList<NewCommit> parents;
         private readonly LazyProperty<string> _lazyMessage;
         private readonly LazyProperty<string> _lazyEncoding;
         private readonly LazyProperty<Signature> _lazyAuthor;
@@ -36,7 +132,7 @@ namespace LibGit2Sharp
             _lazyEncoding = group2.AddLazy<string>(RetrieveEncodingOf);
             _lazyCommitter = group2.AddLazy<Signature>(Proxy.git_commit_committer);
 
-            parents = new Lazy<IList<NewCommit>>(() => RetrieveParentsOfCommit(id));
+            parents = new ParentsList(repo, this);
         }
 
         // Lazy batch loaded properies
@@ -48,10 +144,10 @@ namespace LibGit2Sharp
         public Signature Committer { get { return _lazyCommitter.Value; } }
 
         // On demand lazy loaded properties
-        public IEnumerable<NewCommit> Parents { get { return parents.Value; } }
+        public IEnumerable<NewCommit> Parents { get { return parents; } }
 
         // Other properties
-        public int ParentsCount { get { return Proxy.git_commit_parentcount(repo.Handle, Id); ; } }
+        public int ParentsCount { get { return Proxy.git_commit_parentcount(repo.Handle, Id); } }
 
         public Tree Tree { get { return repo.Lookup<Tree>(TreeId); } }
 
@@ -62,22 +158,6 @@ namespace LibGit2Sharp
             return encoding ?? "UTF-8";
         }
 
-        private IList<NewCommit> RetrieveParentsOfCommit(ObjectId oid)
-        {
-            var parents = new List<NewCommit>();
 
-            using (var obj = new ObjectSafeWrapper(oid, repo.Handle))
-            {
-                int parentsCount = Proxy.git_commit_parentcount(obj);
-
-                for (uint i = 0; i < parentsCount; i++)
-                {
-                    ObjectId parentCommitId = Proxy.git_commit_parent_oid(obj.ObjectPtr, i);
-                    parents.Add(new NewCommit(repo, parentCommitId));
-                }
-            }
-
-            return parents;
-        }
     }
 }
