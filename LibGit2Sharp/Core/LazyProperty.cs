@@ -23,20 +23,15 @@ namespace LibGit2Sharp.Core
             get { return Evaluate(); }
         }
 
-        internal LazyGroup Group
-        {
-            get { return lazyGroup; }
-        }
-
         private TType Evaluate()
         {
             if (!hasBeenEvaluated)
             {
-                lock (Group)
+                lock (lazyGroup)
                 {
                     if (!hasBeenEvaluated)
                     {
-                        Group.TriggerEvaluation();
+                        lazyGroup.TriggerEvaluation();
                     }
                 }
             }
