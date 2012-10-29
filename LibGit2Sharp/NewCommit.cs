@@ -106,15 +106,15 @@ namespace LibGit2Sharp
     {
         private readonly Repository repo;
 
-        private readonly LazyGroup group1;
-        private readonly LazyGroup group2;
+        private readonly GitObjectLazyGroup group1;
+        private readonly GitObjectLazyGroup group2;
 
         private readonly IList<NewCommit> parents;
-        private readonly LazyProperty<string> _lazyMessage;
-        private readonly LazyProperty<string> _lazyEncoding;
-        private readonly LazyProperty<Signature> _lazyAuthor;
-        private readonly LazyProperty<Signature> _lazyCommitter;
-        private readonly LazyProperty<ObjectId> _lazyTreeId;
+        private readonly ILazy<string> _lazyMessage;
+        private readonly ILazy<string> _lazyEncoding;
+        private readonly ILazy<Signature> _lazyAuthor;
+        private readonly ILazy<Signature> _lazyCommitter;
+        private readonly ILazy<ObjectId> _lazyTreeId;
 
         protected NewCommit()
         {}
@@ -123,8 +123,8 @@ namespace LibGit2Sharp
             : base(id)
         {
             this.repo = repo;
-            group1 = new LazyGroup(repo, id);
-            group2 = new LazyGroup(repo, id);
+            group1 = new GitObjectLazyGroup(repo, id);
+            group2 = new GitObjectLazyGroup(repo, id);
 
             _lazyTreeId = group1.AddLazy<ObjectId>(Proxy.git_commit_tree_oid);
             _lazyAuthor = group1.AddLazy<Signature>(Proxy.git_commit_author);
