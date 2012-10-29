@@ -7,12 +7,12 @@ namespace LibGit2Sharp.Core
     internal class LazyProperty<TType> : IEvaluator<GitObjectSafeHandle>
     {
         private readonly Func<GitObjectSafeHandle, TType> evaluator;
-        private readonly LazyGroup lazyGroup;
+        private readonly GitObjectLazyGroup lazyGroup;
 
         private TType value;
         private bool hasBeenEvaluated;
 
-        public LazyProperty(Func<GitObjectSafeHandle, TType> evaluator, LazyGroup lazyGroup)
+        public LazyProperty(Func<GitObjectSafeHandle, TType> evaluator, GitObjectLazyGroup lazyGroup)
         {
             this.evaluator = evaluator;
             this.lazyGroup = lazyGroup;
@@ -51,14 +51,14 @@ namespace LibGit2Sharp.Core
         void Evaluate(T input);
     }
 
-    internal class LazyGroup
+    internal class GitObjectLazyGroup
     {
         private readonly Repository repo;
         private readonly ObjectId id;
 
         private readonly IList<IEvaluator<GitObjectSafeHandle>> lazies = new List<IEvaluator<GitObjectSafeHandle>>();
 
-        public LazyGroup(Repository repo, ObjectId id)
+        public GitObjectLazyGroup(Repository repo, ObjectId id)
         {
             this.repo = repo;
             this.id = id;
