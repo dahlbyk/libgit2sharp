@@ -27,7 +27,7 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Total number of objects.
         /// </summary>
-        public virtual int TotalObjectCount
+        public virtual int TotalObjects
         {
             get
             {
@@ -38,7 +38,7 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Number of objects indexed.
         /// </summary>
-        public virtual int IndexedObjectCount
+        public virtual int IndexedObjects
         {
             get
             {
@@ -49,7 +49,7 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Number of objects received.
         /// </summary>
-        public virtual int ReceivedObjectCount
+        public virtual int ReceivedObjects
         {
             get
             {
@@ -60,7 +60,7 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Number of bytes received.
         /// </summary>
-        public virtual long BytesReceived
+        public virtual long ReceivedBytes
         {
             get
             {

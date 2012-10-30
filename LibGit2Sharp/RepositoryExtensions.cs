@@ -155,8 +155,8 @@ namespace LibGit2Sharp
         /// <param name="onProgress">Progress callback. Corresponds to libgit2 progress callback.</param>
         /// <param name="onCompletion">Completion callback. Corresponds to libgit2 completion callback.</param>
         /// <param name="onUpdateTips">UpdateTips callback. Corresponds to libgit2 update_tips callback.</param>
-        /// <param name="onTransferProgress">TransferProgress callback. Corresponds to libgit2 git_transfer_progress callback.
-        ///   Reports the client's state in downloading and processing data (bytes, objects) from the server.</param>
+        /// <param name="onTransferProgress">Callback method that transfer progress will be reported through.
+        ///   Reports the client's state regarding the received and processed (bytes, objects) from the server.</param>
         public static void Fetch(this IRepository repository, string remoteName,
             TagFetchMode tagFetchMode = TagFetchMode.Auto,
             ProgressHandler onProgress = null,
