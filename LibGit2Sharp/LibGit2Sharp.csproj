@@ -78,6 +78,7 @@
     <Compile Include="Core\GitRemoteCallbacks.cs" />
     <Compile Include="RemoteCallbacks.cs" />
     <Compile Include="RemoteCompletionType.cs" />
+    <Compile Include="RemoteExtensions.cs" />
     <Compile Include="TagCollectionExtensions.cs" />
     <Compile Include="Core\Compat\Environment.cs" />
     <Compile Include="Core\FilePath.cs" />
