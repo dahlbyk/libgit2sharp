@@ -21,7 +21,7 @@ namespace LibGit2Sharp
         ///   Constructor to set up the native callback given managed delegate.
         /// </summary>
         /// <param name="onTransferProgress">The <see cref="TransferProgressHandler"/> delegate that the git_transfer_progress_callback will call.</param>
-        internal TransferCallbacks(TransferProgressHandler onTransferProgress)
+        private TransferCallbacks(TransferProgressHandler onTransferProgress)
         {
             this.onTransferProgress = onTransferProgress;
         }
@@ -33,6 +33,9 @@ namespace LibGit2Sharp
         /// <returns>A delegate method with a signature that matches git_transfer_progress_callback.</returns>
         internal static NativeMethods.git_transfer_progress_callback GenerateCallback(TransferProgressHandler onTransferProgress)
         {
+            if (onTransferProgress == null)
+                return null;
+
             return new TransferCallbacks(onTransferProgress).OnGitTransferProgress;
         }
 

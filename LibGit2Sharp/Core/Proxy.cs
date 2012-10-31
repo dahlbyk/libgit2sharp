@@ -1051,8 +1051,7 @@ namespace LibGit2Sharp.Core
         {
             using (ThreadAffinity())
             {
-                NativeMethods.git_transfer_progress_callback cb = (onTransferProgress != null) ?
-                    TransferCallbacks.GenerateCallback(onTransferProgress) : null;
+                var cb = TransferCallbacks.GenerateCallback(onTransferProgress);
 
                 int res = NativeMethods.git_remote_download(remote, cb, IntPtr.Zero);
                 Ensure.Success(res);
