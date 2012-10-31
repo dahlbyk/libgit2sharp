@@ -51,18 +51,17 @@ namespace LibGit2Sharp
         /// <summary>
         ///   Fetch from the <see cref = "Remote" />.
         /// </summary>
-        /// <param name="tagFetchMode">Optional parameter indicating what tags to download.</param>
         /// <param name="onProgress">Progress callback. Corresponds to libgit2 progress callback.</param>
         /// <param name="onCompletion">Completion callback. Corresponds to libgit2 completion callback.</param>
         /// <param name="onUpdateTips">UpdateTips callback. Corresponds to libgit2 update_tips callback.</param>
         /// <param name="onTransferProgress">Callback method that transfer progress will be reported through.
         ///   Reports the client's state regarding the received and processed (bytes, objects) from the server.</param>
-        public virtual void Fetch(
-            TagFetchMode tagFetchMode = TagFetchMode.Auto,
-            ProgressHandler onProgress = null,
+        /// <param name="tagFetchMode">Optional parameter indicating what tags to download.</param>
+        public virtual void Fetch(ProgressHandler onProgress = null,
             CompletionHandler onCompletion = null,
             UpdateTipsHandler onUpdateTips = null,
-            TransferProgressHandler onTransferProgress = null)
+            TransferProgressHandler onTransferProgress = null,
+            TagFetchMode tagFetchMode = TagFetchMode.Auto)
         {
             using (RemoteSafeHandle remoteHandle = Proxy.git_remote_load(repository.Handle, this.Name, true))
             {

@@ -141,7 +141,7 @@ namespace LibGit2Sharp.Tests
                 }
 
                 // Perform the actual fetch
-                remote.Fetch(TagFetchMode.All, onUpdateTips: expectedFetchState.RemoteUpdateTipsHandler);
+                remote.Fetch(onUpdateTips: expectedFetchState.RemoteUpdateTipsHandler, tagFetchMode: TagFetchMode.All);
 
                 // Verify the expected
                 expectedFetchState.CheckUpdatedReferences(repo);
