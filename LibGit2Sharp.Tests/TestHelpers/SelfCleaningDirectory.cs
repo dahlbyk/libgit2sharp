@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace LibGit2Sharp.Tests.TestHelpers
 {
@@ -29,6 +30,24 @@ namespace LibGit2Sharp.Tests.TestHelpers
         protected static string BuildTempPath()
         {
             return Path.Combine(Constants.TemporaryReposPath, Guid.NewGuid().ToString().Substring(0, 8));
+        }
+
+        public void Touch(string file, string content = null)
+        {
+            TouchInternal(DirectoryPath, file, content);
+        }
+
+        protected void TouchInternal(string parent, string file, string content = null)
+        {
+            var lastIndex = file.LastIndexOf('/');
+            if (lastIndex > 0)
+            {
+                var parents = file.Substring(0, lastIndex);
+                Directory.CreateDirectory(Path.Combine(parent, parents));
+            }
+
+            var filePath = Path.Combine(parent, file);
+            File.WriteAllText(filePath, content ?? "", Encoding.ASCII);
         }
     }
 }

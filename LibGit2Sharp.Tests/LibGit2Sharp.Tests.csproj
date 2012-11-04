@@ -66,6 +66,7 @@
     <Compile Include="DiffBlobToBlobFixture.cs" />
     <Compile Include="DiffTreeToTargetFixture.cs" />
     <Compile Include="DiffWorkdirToIndexFixture.cs" />
+    <Compile Include="InteractiveFixture.cs" />
     <Compile Include="ObjectDatabaseFixture.cs" />
     <Compile Include="OdbBackendFixture.cs" />
     <Compile Include="DiffTreeToTreeFixture.cs" />

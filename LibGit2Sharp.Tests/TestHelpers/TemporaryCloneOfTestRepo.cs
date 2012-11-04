@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 
 namespace LibGit2Sharp.Tests.TestHelpers
 {
@@ -31,5 +32,10 @@ namespace LibGit2Sharp.Tests.TestHelpers
         }
 
         public string RepositoryPath { get; private set; }
+
+        public void TouchGit(string file, string content=null)
+        {
+            TouchInternal(RepositoryPath, file, content);
+        }
     }
 }

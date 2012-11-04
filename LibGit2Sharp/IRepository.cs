@@ -55,6 +55,11 @@ namespace LibGit2Sharp
         RepositoryInformation Info { get; }
 
         /// <summary>
+        ///   Provides information about this repository's interactive state (merge, rebase, etc).
+        /// </summary>
+        InteractiveState InteractiveState { get; }
+
+        /// <summary>
         ///   Provides access to diffing functionalities to show changes between the working tree and the index or a tree, changes between the index and a tree, changes between two trees, or changes between two files on disk.
         /// </summary>
         Diff Diff {get;}

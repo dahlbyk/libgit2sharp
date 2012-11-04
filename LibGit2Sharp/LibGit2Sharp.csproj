@@ -73,11 +73,13 @@
     <Compile Include="Core\GitTransferProgress.cs" />
     <Compile Include="Core\Proxy.cs" />
     <Compile Include="Handlers.cs" />
+    <Compile Include="InteractiveState.cs" />
     <Compile Include="ReferenceCollectionExtensions.cs" />
     <Compile Include="Core\GitIndexerStats.cs" />
     <Compile Include="Core\GitRemoteCallbacks.cs" />
     <Compile Include="RemoteCallbacks.cs" />
     <Compile Include="RemoteCompletionType.cs" />
+    <Compile Include="RepositoryState.cs" />
     <Compile Include="TagCollectionExtensions.cs" />
     <Compile Include="Core\Compat\Environment.cs" />
     <Compile Include="Core\FilePath.cs" />
@@ -200,6 +202,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="libgit2sharp_hash.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interactive\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
