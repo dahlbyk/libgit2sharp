@@ -5,33 +5,40 @@ namespace LibGit2Sharp.Core
 {
     internal abstract class LazyGroup<T>
     {
-        private readonly IList<IEvaluator<T>> evaluators = new List<IEvaluator<T>>();
+        private readonly IDictionary<uint, IList<IEvaluator<T>>> evaluators = new Dictionary<uint, IList<IEvaluator<T>>>();
         private readonly object @lock = new object();
-        private bool evaluated;
+        private readonly IDictionary<uint, bool> evaluated = new Dictionary<uint, bool>();
 
-        public ILazy<TResult> AddLazy<TResult>(Func<T, TResult> func)
+        public ILazy<TResult> AddLazy<TResult>(uint level, Func<T, TResult> func)
         {
-            var prop = new Dependent<T, TResult>(func, this);
-            evaluators.Add(prop);
+            var prop = new Dependent<T, TResult>(level, func, this);
+
+            if (!evaluated.ContainsKey(level))
+            {
+                evaluated.Add(level, false);
+                evaluators.Add(level, new List<IEvaluator<T>>());
+            }
+
+            evaluators[level].Add(prop);
             return prop;
         }
 
-        public void Evaluate()
+        public void Evaluate(uint level)
         {
-            if (evaluated)
+            if (evaluated[level])
                 return;
 
             lock (@lock)
             {
-                if (evaluated)
+                if (evaluated[level])
                     return;
 
                 EvaluateInternal(input =>
                                  {
-                                     foreach (var e in evaluators)
+                                     foreach (var e in evaluators[level])
                                          e.Evaluate(input);
                                  });
-                evaluated = true;
+                evaluated[level] = true;
             }
         }
 
@@ -46,14 +53,16 @@ namespace LibGit2Sharp.Core
         {
             private readonly Func<TInput, TOutput> valueFactory;
             private readonly LazyGroup<TInput> lazyGroup;
+            private readonly uint level;
 
             private TOutput value;
             private bool hasBeenEvaluated;
 
-            public Dependent(Func<TInput, TOutput> valueFactory, LazyGroup<TInput> lazyGroup)
+            public Dependent(uint level, Func<TInput, TOutput> valueFactory, LazyGroup<TInput> lazyGroup)
             {
                 this.valueFactory = valueFactory;
                 this.lazyGroup = lazyGroup;
+                this.level = level;
             }
 
             public TOutput Value
@@ -65,7 +74,7 @@ namespace LibGit2Sharp.Core
             {
                 if (!hasBeenEvaluated)
                 {
-                    lazyGroup.Evaluate();
+                    lazyGroup.Evaluate(level);
                 }
 
                 return value;
