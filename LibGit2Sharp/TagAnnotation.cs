@@ -22,11 +22,12 @@ namespace LibGit2Sharp
         internal TagAnnotation(Repository repo, ObjectId id)
             : base(id)
         {
+            lazyName = GitObjectLazyGroup.Singleton(repo, id, Proxy.git_tag_name);
+            lazyTarget = GitObjectLazyGroup.Singleton(repo, id, obj => repo.Lookup<GitObject>(Proxy.git_tag_target_oid(obj)));
+
             group = new GitObjectLazyGroup(repo, id);
-            lazyName = group.AddLazy(Proxy.git_tag_name);
             lazyTagger = group.AddLazy(Proxy.git_tag_tagger);
             lazyMessage = group.AddLazy(Proxy.git_tag_message);
-            lazyTarget = group.AddLazy(obj => repo.Lookup<GitObject>(Proxy.git_tag_target_oid(obj)));
         }
 
         /// <summary>

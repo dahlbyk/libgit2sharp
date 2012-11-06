@@ -38,7 +38,7 @@ namespace LibGit2Sharp
             this.repo = repo;
 
             group = new GitObjectLazyGroup(this.repo, id);
-            lazyTree = group.AddLazy(obj => repo.Lookup<Tree>(Proxy.git_commit_tree_oid(obj)));
+            lazyTree = GitObjectLazyGroup.Singleton(this.repo, id, obj => repo.Lookup<Tree>(Proxy.git_commit_tree_oid(obj)));
             lazyAuthor = group.AddLazy(Proxy.git_commit_author);
             lazyCommitter = group.AddLazy(Proxy.git_commit_committer);
             lazyMessage = group.AddLazy(Proxy.git_commit_message);
