@@ -25,7 +25,7 @@ namespace LibGit2Sharp
             this.repo = repo;
 
             group = new GitObjectLazyGroup(repo, id);
-            lazySize = group.AddLazy(0, Proxy.git_blob_rawsize);
+            lazySize = group.AddLazy(Proxy.git_blob_rawsize);
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace LibGit2Sharp
             this.path = path ?? "";
 
             group = new GitObjectLazyGroup(this.repo, id);
-            lazyCount = group.AddLazy(0, Proxy.git_tree_entrycount);
+            lazyCount = group.AddLazy(Proxy.git_tree_entrycount);
         }
 
         /// <summary>

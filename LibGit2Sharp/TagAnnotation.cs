@@ -23,10 +23,10 @@ namespace LibGit2Sharp
             : base(id)
         {
             group = new GitObjectLazyGroup(repo, id);
-            lazyName = group.AddLazy(0, Proxy.git_tag_name);
-            lazyTagger = group.AddLazy(1, Proxy.git_tag_tagger);
-            lazyMessage = group.AddLazy(1, Proxy.git_tag_message);
-            lazyTarget = group.AddLazy(2, obj => repo.Lookup<GitObject>(Proxy.git_tag_target_oid(obj)));
+            lazyName = group.AddLazy(Proxy.git_tag_name);
+            lazyTagger = group.AddLazy(Proxy.git_tag_tagger);
+            lazyMessage = group.AddLazy(Proxy.git_tag_message);
+            lazyTarget = group.AddLazy(obj => repo.Lookup<GitObject>(Proxy.git_tag_target_oid(obj)));
         }
 
         /// <summary>

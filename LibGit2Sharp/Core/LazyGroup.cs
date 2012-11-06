@@ -10,6 +10,11 @@ namespace LibGit2Sharp.Core
         private readonly object @lock = new object();
         private readonly IDictionary<uint, bool> evaluated = new Dictionary<uint, bool>();
 
+        public ILazy<TResult> AddLazy<TResult>(Func<T, TResult> func)
+        {
+            return AddLazy(0, func);
+        }
+
         public ILazy<TResult> AddLazy<TResult>(uint level, Func<T, TResult> func)
         {
             var prop = new Dependent<T, TResult>(level, func, this);
