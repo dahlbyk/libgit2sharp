@@ -156,5 +156,15 @@ namespace LibGit2Sharp
 
             return repo.Lookup<Commit>(commitId);
         }
+
+        public void Archive<TArchiver>(Tree tree, string targetPath) where TArchiver: ArchiverBase, new()
+        {
+            using (var archiver = new TArchiver())
+            {
+                archiver.Init(repo, targetPath);
+
+                archiver.AddTree(tree);
+            }
+        }
     }
 }

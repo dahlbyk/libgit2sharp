@@ -286,5 +286,53 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal("Ü message\n", commit.Message);
             }
         }
+
+        [Fact]
+        public void CanArchiveATree()
+        {
+            SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
+
+            using (var repo = new Repository(BareTestRepoPath))
+            {
+                var tree = repo.Lookup<Tree>("581f9824ecaf824221bd36edf5430f2739a7c4f5");
+
+                repo.ObjectDatabase.Archive<DirectoryArchiver>(tree, scd.DirectoryPath);
+
+                Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, "branch_file.txt")));
+                Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, "new.txt")));
+                Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, "README")));
+                Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, @"1\branch_file.txt")));
+            }
+        }
+
+        private class DirectoryArchiver : ArchiverBase
+        {
+            private string archivePath;
+
+            #region Overrides of ArchiverBase
+
+            protected override void InitializeArchive(string archivePath)
+            {
+                this.archivePath = archivePath;
+
+                Directory.CreateDirectory(archivePath);
+            }
+
+            protected override void AddFileToArchive(string relativePath, Stream contentStream)
+            {
+                string filePath = Path.Combine(archivePath, relativePath);
+
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                using (Stream file = File.OpenWrite(filePath))
+                {
+                    BlobFixture.CopyStream(contentStream, file);
+                }
+            }
+
+            public override void Dispose()
+            { }
+
+            #endregion
+        }
     }
 }
