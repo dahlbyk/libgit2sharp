@@ -56,7 +56,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmbiguousException.cs" />
-    <Compile Include="ArchiverBase.cs" />
     <Compile Include="BareRepositoryException.cs" />
     <Compile Include="Blob.cs" />
     <Compile Include="BlobExtensions.cs" />

@@ -296,7 +296,9 @@ namespace LibGit2Sharp.Tests
             {
                 var tree = repo.Lookup<Tree>("581f9824ecaf824221bd36edf5430f2739a7c4f5");
 
-                repo.ObjectDatabase.Archive<DirectoryArchiver>(tree, scd.DirectoryPath);
+                var archiver = new DirectoryArchiver(scd.DirectoryPath);
+
+                repo.ObjectDatabase.Archive(tree, archiver.AddFileToArchive);
 
                 Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, "branch_file.txt")));
                 Assert.True(File.Exists(Path.Combine(scd.DirectoryPath, "new.txt")));
@@ -305,20 +307,18 @@ namespace LibGit2Sharp.Tests
             }
         }
 
-        private class DirectoryArchiver : ArchiverBase
+        private class DirectoryArchiver
         {
-            private string archivePath;
+            private readonly string archivePath;
 
-            #region Overrides of ArchiverBase
-
-            protected override void InitializeArchive(string archivePath)
+            public DirectoryArchiver(string archivePath)
             {
                 this.archivePath = archivePath;
 
                 Directory.CreateDirectory(archivePath);
             }
 
-            protected override void AddFileToArchive(string relativePath, Stream contentStream)
+            public void AddFileToArchive(string relativePath, Stream contentStream)
             {
                 string filePath = Path.Combine(archivePath, relativePath);
 
@@ -328,11 +328,6 @@ namespace LibGit2Sharp.Tests
                     BlobFixture.CopyStream(contentStream, file);
                 }
             }
-
-            public override void Dispose()
-            { }
-
-            #endregion
         }
     }
 }

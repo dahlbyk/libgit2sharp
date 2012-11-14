@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using LibGit2Sharp.Core;
 using LibGit2Sharp.Core.Handles;
+using LibGit2Sharp.Handlers;
 
 namespace LibGit2Sharp
 {
@@ -157,13 +158,31 @@ namespace LibGit2Sharp
             return repo.Lookup<Commit>(commitId);
         }
 
-        public void Archive<TArchiver>(Tree tree, string targetPath) where TArchiver: ArchiverBase, new()
+        /// <summary>
+        ///   Archive the given tree.
+        /// </summary>
+        /// <param name="tree">The tree.</param>
+        /// <param name="addToArchive">A handler for each file to archive.</param>
+        public void Archive(Tree tree, ArchiveFileHandler addToArchive)
         {
-            using (var archiver = new TArchiver())
-            {
-                archiver.Init(repo, targetPath);
+            ArchiveTree(tree, "", addToArchive);
+        }
 
-                archiver.AddTree(tree);
+        private static void ArchiveTree(IEnumerable<TreeEntry> tree, string path, ArchiveFileHandler addToArchive)
+        {
+            foreach (var entry in tree)
+            {
+                // TODO: submodules? symlinks?
+                if (entry.Type == GitObjectType.Tree)
+                {
+                    ArchiveTree((Tree)entry.Target, Path.Combine(path, entry.Name), addToArchive);
+                    continue;
+                }
+
+                using (Stream contentStream = ((Blob)entry.Target).ContentStream)
+                {
+                    addToArchive(Path.Combine(path, entry.Name), contentStream);
+                }
             }
         }
     }

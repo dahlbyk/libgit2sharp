@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using LibGit2Sharp.Core;
 
 namespace LibGit2Sharp.Handlers
@@ -44,4 +45,11 @@ namespace LibGit2Sharp.Handlers
     /// <param name="completedSteps">Number of completed steps.</param>
     /// <param name="totalSteps">Total number of steps.</param>
     public delegate void CheckoutProgressHandler(string path, int completedSteps, int totalSteps);
+
+    /// <summary>
+    ///   Delegate definition for file archive callback.
+    /// </summary>
+    /// <param name="relativePath">The path to the file.</param>
+    /// <param name="contentStream">A stream of the file contents.</param>
+    public delegate void ArchiveFileHandler(string relativePath, Stream contentStream);
 }
