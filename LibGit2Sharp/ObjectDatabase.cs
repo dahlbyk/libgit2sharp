@@ -163,7 +163,7 @@ namespace LibGit2Sharp
         /// </summary>
         /// <param name="tree">The tree.</param>
         /// <param name="addToArchive">A handler for each file to archive.</param>
-        public void Archive(Tree tree, ArchiveFileHandler addToArchive)
+        public virtual void Archive(Tree tree, ArchiveFileHandler addToArchive)
         {
             ArchiveTree(tree, "", addToArchive);
         }
@@ -172,16 +172,20 @@ namespace LibGit2Sharp
         {
             foreach (var entry in tree)
             {
-                // TODO: submodules? symlinks?
-                if (entry.Type == GitObjectType.Tree)
+                switch (entry.Type)
                 {
-                    ArchiveTree((Tree)entry.Target, Path.Combine(path, entry.Name), addToArchive);
-                    continue;
-                }
+                    case GitObjectType.Blob:
+                        using (Stream contentStream = ((Blob)entry.Target).ContentStream)
+                        {
+                            addToArchive(Path.Combine(path, entry.Name), contentStream);
+                        }
+                        break;
 
-                using (Stream contentStream = ((Blob)entry.Target).ContentStream)
-                {
-                    addToArchive(Path.Combine(path, entry.Name), contentStream);
+                    case GitObjectType.Tree:
+                        ArchiveTree((Tree)entry.Target, Path.Combine(path, entry.Name), addToArchive);
+                        break;
+
+                    // TODO: submodules? symlinks?
                 }
             }
         }
