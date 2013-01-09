@@ -631,7 +631,14 @@ namespace LibGit2Sharp
                 return Enumerable.Empty<Commit>();
             }
 
-            return new[] { Head.Tip };
+            List<Commit> parents = new List<Commit> { Head.Tip };
+
+            if (Info.CurrentOperation == CurrentOperation.Merge)
+            {
+                parents.AddRange(MergeHead.Select(mh => mh.Tip));
+            }
+
+            return parents;
         }
 
         /// <summary>
