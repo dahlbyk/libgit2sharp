@@ -32,5 +32,15 @@ namespace LibGit2Sharp
         /// (Default = false)
         /// </summary>
         internal bool SkipPatchBuilding { get; set; }
+
+        /// <summary>
+        /// Look for renames?
+        /// </summary>
+        public bool DetectRenames { get; set; }
+
+        /// <summary>
+        /// Look for copies?
+        /// </summary>
+        public bool DetectCopies { get; set; }
     }
 }

@@ -271,6 +271,8 @@ namespace LibGit2Sharp
                     DispatchUnmatchedPaths(explicitPathsOptions, filePaths, matchedPaths);
                 }
 
+                HandleRenameAndCopyDetection(diffList, compareOptions);
+
                 bool skipPatchBuilding = (compareOptions != null) && compareOptions.SkipPatchBuilding;
                 return new TreeChanges(diffList, skipPatchBuilding);
             }
@@ -305,6 +307,32 @@ namespace LibGit2Sharp
             unmatchedPaths.ForEach(filePath => message.AppendFormat("- {0}{1}", filePath.Native, Environment.NewLine));
 
             return message.ToString();
+        }
+
+        private static void HandleRenameAndCopyDetection(DiffListSafeHandle diff, CompareOptions compareOptions)
+        {
+            if (compareOptions == null)
+            {
+                return;
+            }
+
+            var diffFindOptions = new GitDiffFindOptions();
+
+            if (compareOptions.DetectRenames)
+            {
+                diffFindOptions.Flags |= GitDiffFindOptionFlags.GIT_DIFF_FIND_RENAMES;
+            }
+
+            if (compareOptions.DetectCopies)
+            {
+                diffFindOptions.Flags |= GitDiffFindOptionFlags.GIT_DIFF_FIND_RENAMES
+                                         | GitDiffFindOptionFlags.GIT_DIFF_FIND_COPIES;
+            }
+
+            if (diffFindOptions.Flags > 0)
+            {
+                Proxy.git_diff_find_similar(diff, diffFindOptions);
+            }
         }
     }
 }
