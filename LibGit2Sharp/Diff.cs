@@ -107,6 +107,14 @@ namespace LibGit2Sharp
                 }
             }
 
+            if (compareOptions != null)
+            {
+                if (compareOptions.DetectCopiesFromUnmodified)
+                {
+                    diffOptions |= DiffModifiers.IncludeUnmodified;
+                }
+            }
+
             return BuildTreeChangesFromComparer(oldTreeId, newTreeId, comparer, diffOptions, paths, explicitPathsOptions, compareOptions);
         }
 
@@ -327,6 +335,13 @@ namespace LibGit2Sharp
             {
                 diffFindOptions.Flags |= GitDiffFindOptionFlags.GIT_DIFF_FIND_RENAMES
                                          | GitDiffFindOptionFlags.GIT_DIFF_FIND_COPIES;
+            }
+
+            if (compareOptions.DetectCopiesFromUnmodified)
+            {
+                diffFindOptions.Flags |= GitDiffFindOptionFlags.GIT_DIFF_FIND_RENAMES
+                                         | GitDiffFindOptionFlags.GIT_DIFF_FIND_COPIES
+                                         | GitDiffFindOptionFlags.GIT_DIFF_FIND_COPIES_FROM_UNMODIFIED;
             }
 
             if (diffFindOptions.Flags > 0)

@@ -489,7 +489,7 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanDetectTheRenamingOfNonModifiedFilesWhenEnabled()
+        public void CanDetectTheExactRenamingOfFilesWhenEnabled()
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -523,7 +523,7 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanNotDetectTheRenamingOfNonModifiedFilesWhenNotEnabled()
+        public void CanNotDetectTheExactRenamingFilesWhenNotEnabled()
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -555,7 +555,7 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanDetectTheCopyingOfNonModifiedFilesWhenEnabled()
+        public void CanDetectTheExactCopyingOfNonModifiedFilesWhenEnabled()
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -579,7 +579,7 @@ namespace LibGit2Sharp.Tests
                                                         compareOptions:
                                                             new CompareOptions
                                                             {
-                                                                DetectCopies = true,
+                                                                DetectCopiesFromUnmodified = true,
                                                             });
 
                 Assert.Equal(1, changes.Count());
@@ -590,7 +590,7 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanNotDetectTheCopyingOfNonModifiedFilesWhenNotEnabled()
+        public void CanNotDetectTheExactCopyingOfNonModifiedFilesWhenNotEnabled()
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -623,7 +623,76 @@ namespace LibGit2Sharp.Tests
         }
 
         [Fact]
-        public void CanDetectTheRenamingAndCopyingOfNonModifiedFilesWhenEnabled()
+        public void CanDetectTheExactCopyingOfModifiedFilesWhenEnabled()
+        {
+            SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
+            var path = Repository.Init(scd.DirectoryPath);
+            using (var repo = new Repository(path))
+            {
+                string originalPath = Path.Combine(repo.Info.WorkingDirectory, "original.txt");
+                string copiedPath = Path.Combine(repo.Info.WorkingDirectory, "copied.txt");
+
+                File.WriteAllText(originalPath, "a\nb\nc\nd\n");
+
+                repo.Index.Stage(originalPath);
+
+                Commit old = repo.Commit("Initial", Constants.Signature, Constants.Signature);
+
+                File.Copy(originalPath, copiedPath);
+                File.AppendAllText(originalPath, "e\n");
+
+                repo.Index.Stage(originalPath);
+                repo.Index.Stage(copiedPath);
+
+                Commit @new = repo.Commit("Updated", Constants.Signature, Constants.Signature);
+
+                TreeChanges changes = repo.Diff.Compare(old.Tree, @new.Tree,
+                                                        compareOptions:
+                                                            new CompareOptions
+                                                            {
+                                                                DetectCopies = true,
+                                                            });
+
+                Assert.Equal(2, changes.Count());
+                Assert.Equal(1, changes.Copied.Count());
+                Assert.Equal("original.txt", changes.Copied.Single().OldPath);
+                Assert.Equal("copied.txt", changes.Copied.Single().Path);
+            }
+        }
+
+        [Fact]
+        public void CanNotDetectTheExactCopyingOfModifiedFilesWhenNotEnabled()
+        {
+            SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
+            var path = Repository.Init(scd.DirectoryPath);
+            using (var repo = new Repository(path))
+            {
+                string originalPath = Path.Combine(repo.Info.WorkingDirectory, "original.txt");
+                string copiedPath = Path.Combine(repo.Info.WorkingDirectory, "copied.txt");
+
+                File.WriteAllText(originalPath, "a\nb\nc\nd\n");
+
+                repo.Index.Stage(originalPath);
+
+                Commit old = repo.Commit("Initial", Constants.Signature, Constants.Signature);
+
+                File.Copy(originalPath, copiedPath);
+                File.AppendAllText(originalPath, "e\n");
+
+                repo.Index.Stage(originalPath);
+                repo.Index.Stage(copiedPath);
+
+                Commit @new = repo.Commit("Updated", Constants.Signature, Constants.Signature);
+
+                TreeChanges changes = repo.Diff.Compare(old.Tree, @new.Tree);
+
+                Assert.Equal(2, changes.Count());
+                Assert.Equal(0, changes.Copied.Count());
+            }
+        }
+
+        [Fact]
+        public void CanDetectTheExactRenamingExactCopyingOfNonModifiedAndModifiedFilesWhenEnabled()
         {
             SelfCleaningDirectory scd = BuildSelfCleaningDirectory();
             var path = Repository.Init(scd.DirectoryPath);
@@ -631,19 +700,28 @@ namespace LibGit2Sharp.Tests
             {
                 string originalPath = Path.Combine(repo.Info.WorkingDirectory, "original.txt");
                 string renamedPath = Path.Combine(repo.Info.WorkingDirectory, "renamed.txt");
-                string otherOriginalPath = Path.Combine(repo.Info.WorkingDirectory, "original2.txt");
-                string copiedPath = Path.Combine(repo.Info.WorkingDirectory, "copied.txt");
+                string originalPath2 = Path.Combine(repo.Info.WorkingDirectory, "original2.txt");
+                string copiedPath1 = Path.Combine(repo.Info.WorkingDirectory, "copied.txt");
+                string originalPath3 = Path.Combine(repo.Info.WorkingDirectory, "original3.txt");
+                string copiedPath2 = Path.Combine(repo.Info.WorkingDirectory, "copied2.txt");
 
                 File.WriteAllText(originalPath, "a\nb\nc\nd\n");
-                File.WriteAllText(otherOriginalPath, "1\n2\n3\n4\n");
+                File.WriteAllText(originalPath2, "1\n2\n3\n4\n");
+                File.WriteAllText(originalPath3, "5\n6\n7\n8\n");
 
                 repo.Index.Stage(originalPath);
-                repo.Index.Stage(otherOriginalPath);
+                repo.Index.Stage(originalPath2);
+                repo.Index.Stage(originalPath3);
 
                 Commit old = repo.Commit("Initial", Constants.Signature, Constants.Signature);
 
-                File.Copy(otherOriginalPath, copiedPath);
-                repo.Index.Stage(copiedPath);
+                File.Copy(originalPath2, copiedPath1);
+                File.Copy(originalPath3, copiedPath2);
+                File.AppendAllText(originalPath3, "9\n");
+
+                repo.Index.Stage(originalPath3);
+                repo.Index.Stage(copiedPath1);
+                repo.Index.Stage(copiedPath2);
                 repo.Index.Move(originalPath, renamedPath);
 
                 Commit @new = repo.Commit("Updated", Constants.Signature, Constants.Signature);
@@ -652,17 +730,19 @@ namespace LibGit2Sharp.Tests
                                                         compareOptions:
                                                             new CompareOptions
                                                             {
-                                                                DetectRenames = true,
-                                                                DetectCopies = true,
+                                                                DetectCopiesFromUnmodified = true,
                                                             });
 
-                Assert.Equal(2, changes.Count());
+                Assert.Equal(4, changes.Count());
+                Assert.Equal(1, changes.Modified.Count());
                 Assert.Equal(1, changes.Renamed.Count());
                 Assert.Equal("original.txt", changes.Renamed.Single().OldPath);
                 Assert.Equal("renamed.txt", changes.Renamed.Single().Path);
-                Assert.Equal(1, changes.Copied.Count());
-                Assert.Equal("original2.txt", changes.Copied.Single().OldPath);
-                Assert.Equal("copied.txt", changes.Copied.Single().Path);
+                Assert.Equal(2, changes.Copied.Count());
+                Assert.Equal("original2.txt", changes.Copied.ElementAt(0).OldPath);
+                Assert.Equal("copied.txt", changes.Copied.ElementAt(0).Path);
+                Assert.Equal("original3.txt", changes.Copied.ElementAt(1).OldPath);
+                Assert.Equal("copied2.txt", changes.Copied.ElementAt(1).Path);
             }
         }
 

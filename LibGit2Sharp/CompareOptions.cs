@@ -42,5 +42,10 @@ namespace LibGit2Sharp
         /// Look for copies?
         /// </summary>
         public bool DetectCopies { get; set; }
+
+        /// <summary>
+        /// Consider unmodified files as copy sources?
+        /// </summary>
+        public bool DetectCopiesFromUnmodified { get; set; }
     }
 }
