@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using LibGit2Sharp.Core;
 
 namespace LibGit2Sharp
@@ -48,7 +49,7 @@ namespace LibGit2Sharp
             IndexEntry ancestor = null, ours = null, theirs = null;
             string currentPath = null;
 
-            foreach (IndexEntry entry in repo.Index)
+            foreach (IndexEntry entry in repo.Index.OrderBy(e => e.Path, StringComparer.Ordinal))
             {
                 if (entry.StageLevel == StageLevel.Staged)
                 {
