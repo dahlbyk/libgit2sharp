@@ -184,7 +184,7 @@ namespace LibGit2Sharp.Tests
          * $ git diff -M --shortstat f8d44d7..4be51d6
          *  1 file changed, 1 insertion(+)
          */
-        [Fact(Skip = "Not implemented in libgit2 yet.")]
+        [Fact]
         public void CanDetectTheRenamingOfAModifiedFile()
         {
             using (var repo = new Repository(StandardTestRepoPath))
@@ -192,12 +192,16 @@ namespace LibGit2Sharp.Tests
                 Tree rootCommitTree = repo.Lookup<Commit>("f8d44d7").Tree;
                 Tree commitTreeWithRenamedFile = repo.Lookup<Commit>("4be51d6").Tree;
 
-                TreeChanges changes = repo.Diff.Compare(rootCommitTree, commitTreeWithRenamedFile);
+                TreeChanges changes = repo.Diff.Compare(rootCommitTree, commitTreeWithRenamedFile,
+                                                        compareOptions: new CompareOptions
+                                                        {
+                                                            DetectRenames = true,
+                                                        });
 
                 Assert.Equal(1, changes.Count());
                 Assert.Equal("super-file.txt", changes["super-file.txt"].Path);
                 Assert.Equal("my-name-does-not-feel-right.txt", changes["super-file.txt"].OldPath);
-                //Assert.Equal(1, changes.FilesRenamed.Count());
+                Assert.Equal(1, changes.Renamed.Count());
             }
         }
 
