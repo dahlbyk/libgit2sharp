@@ -2620,6 +2620,20 @@ namespace LibGit2Sharp.Core
 
         #endregion
 
+        #region git_transport_
+
+        public static void git_transport_register(String prefix, uint priority, IntPtr transport_cb, IntPtr param)
+        {
+            Ensure.ZeroResult(NativeMethods.git_transport_register(prefix, priority, transport_cb, param));
+        }
+
+        public static void git_transport_unregister(String prefix, uint priority)
+        {
+            NativeMethods.git_transport_unregister(prefix, priority);
+        }
+
+        #endregion
+
         #region git_tree_
 
         public static Mode git_tree_entry_attributes(SafeHandle entry)

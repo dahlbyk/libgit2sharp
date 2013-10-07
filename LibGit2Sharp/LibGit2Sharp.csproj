@@ -84,6 +84,7 @@
     <Compile Include="DefaultCredentials.cs" />
     <Compile Include="EmptyCommitException.cs" />
     <Compile Include="FetchOptions.cs" />
+    <Compile Include="LibGit2.cs" />
     <Compile Include="MergeOptions.cs" />
     <Compile Include="MergeResult.cs" />
     <Compile Include="PatchStats.cs" />
@@ -173,6 +174,7 @@
     <Compile Include="Core\GitCloneOptions.cs" />
     <Compile Include="Core\GitConfigEntry.cs" />
     <Compile Include="Core\GitObjectLazyGroup.cs" />
+    <Compile Include="Core\GitSmartSubtransportRegistration.cs" />
     <Compile Include="Core\GitTransferProgress.cs" />
     <Compile Include="Core\Handles\NullGitObjectSafeHandle.cs" />
     <Compile Include="Core\Handles\NullIndexSafeHandle.cs" />
@@ -200,6 +202,11 @@
     <Compile Include="RemoteCompletionType.cs" />
     <Compile Include="CurrentOperation.cs" />
     <Compile Include="StageLevel.cs" />
+    <Compile Include="SmartSubtransport.cs" />
+    <Compile Include="SmartSubtransportRegistration.cs" />
+    <Compile Include="SmartSubtransportStream.cs" />
+    <Compile Include="Core\GitSmartSubtransport.cs" />
+    <Compile Include="Core\GitSmartSubtransportStream.cs" />
     <Compile Include="TagCollectionExtensions.cs" />
     <Compile Include="Core\FilePath.cs" />
     <Compile Include="Core\FilePathExtensions.cs" />
