@@ -20,6 +20,27 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        [Fact]
+        public void RetrievingSubmoduleInBranchShouldWork()
+        {
+            var path = CloneSubmoduleTestRepo();
+            using (var repo = new Repository(path))
+            {
+                var submodule = repo.Submodules["sm_branch_only"];
+                Assert.Null(submodule);
+
+                repo.Checkout("dev", CheckoutModifiers.Force, null, null);
+                submodule = repo.Submodules["sm_branch_only"];
+                Assert.NotNull(submodule);
+                Console.WriteLine(submodule.RetrieveStatus());
+
+                repo.Checkout("master", CheckoutModifiers.Force, null, null);
+                submodule = repo.Submodules["sm_branch_only"];
+                Console.WriteLine(submodule == null ? "(null)" : submodule.RetrieveStatus().ToString());
+                Assert.Null(submodule);
+            }
+        }
+
         [Theory]
         [InlineData("sm_added_and_uncommited", SubmoduleStatus.InConfig | SubmoduleStatus.InIndex | SubmoduleStatus.InWorkDir | SubmoduleStatus.IndexAdded)]
         [InlineData("sm_changed_file", SubmoduleStatus.InConfig | SubmoduleStatus.InHead | SubmoduleStatus.InIndex | SubmoduleStatus.InWorkDir | SubmoduleStatus.WorkDirFilesModified)]
@@ -35,6 +56,7 @@ namespace LibGit2Sharp.Tests
             using (var repo = new Repository(path))
             {
                 var submodule = repo.Submodules[name];
+
                 Assert.NotNull(submodule);
                 Assert.Equal(name, submodule.Name);
                 Assert.Equal(name, submodule.Path);
