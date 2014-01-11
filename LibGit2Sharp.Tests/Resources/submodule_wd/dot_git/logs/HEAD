@@ -2,3 +2,6 @@
 14fe9ccf104058df25e0a08361c4494e167ef243 a9104bf89e911387244ef499413960ba472066d9 Russell Belfer <rb@github.com> 1342559831 -0700	commit: Adding a submodule
 a9104bf89e911387244ef499413960ba472066d9 5901da4f1c67756eeadc5121d206bec2431f253b Russell Belfer <rb@github.com> 1342560036 -0700	commit: Updating submodule
 5901da4f1c67756eeadc5121d206bec2431f253b 7484482eb8db738cafa696993664607500a3f2b9 Russell Belfer <rb@github.com> 1342560288 -0700	commit: Adding a bunch more test content
+7484482eb8db738cafa696993664607500a3f2b9 7484482eb8db738cafa696993664607500a3f2b9 Keith Dahlby <dahlbyk@gmail.com> 1389415523 -0600	checkout: moving from master to dev
+7484482eb8db738cafa696993664607500a3f2b9 6b94d06e586d4ed904d8c00a9de7d0afe0fc9c3c Keith Dahlby <dahlbyk@gmail.com> 1389415618 -0600	commit: Add sm_branch_only
+6b94d06e586d4ed904d8c00a9de7d0afe0fc9c3c 7484482eb8db738cafa696993664607500a3f2b9 Keith Dahlby <dahlbyk@gmail.com> 1389415677 -0600	checkout: moving from dev to master
