@@ -10,7 +10,6 @@ namespace LibGit2Sharp.Tests.TestHelpers
 
         // Populate these to turn on live credential tests
         public const string PrivateRepoUrl = "";
-        public const string PrivateRepoUsername = "";
-        public const string PrivateRepoPassword = "";
+        public static readonly Credentials PrivateRepoCredentials;
     }
 }
