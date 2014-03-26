@@ -389,7 +389,7 @@ namespace LibGit2Sharp.Core
             out IntPtr cred,
             IntPtr url,
             IntPtr username_from_url,
-            uint allowed_types,
+            GitCredentialType allowed_types,
             IntPtr payload);
 
         [DllImport(libgit2)]
