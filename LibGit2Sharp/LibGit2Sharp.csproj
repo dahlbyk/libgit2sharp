@@ -79,7 +79,6 @@
     <Compile Include="ContentChangeStats.cs" />
     <Compile Include="Core\Handles\PatchSafeHandle.cs" />
     <Compile Include="Core\IntPtrExtensions.cs" />
-    <Compile Include="CredentialType.cs" />
     <Compile Include="DefaultCredentials.cs" />
     <Compile Include="FetchOptions.cs" />
     <Compile Include="MergeResult.cs" />

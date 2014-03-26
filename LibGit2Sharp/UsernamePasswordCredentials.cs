@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using LibGit2Sharp.Core;
 
 namespace LibGit2Sharp
 {
@@ -10,15 +8,9 @@ namespace LibGit2Sharp
     /// </summary>
     public sealed class UsernamePasswordCredentials : Credentials
     {
-        /// <summary>
-        /// Returns the type of credentials to be used for authentication.
-        /// </summary>
-        public override CredentialType Type
+        protected internal override int GitCredentialHandler(out IntPtr cred, IntPtr url, IntPtr usernameFromUrl, uint types, IntPtr payload)
         {
-            get
-            {
-                return CredentialType.UsernamePassword;
-            }
+            return NativeMethods.git_cred_userpass_plaintext_new(out cred, Username, Password);
         }
 
         /// <summary>

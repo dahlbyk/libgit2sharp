@@ -74,7 +74,7 @@ namespace LibGit2Sharp
 
             if (Credentials != null)
             {
-                callbacks.acquire_credentials = GitCredentialHandler;
+                callbacks.acquire_credentials = Credentials.GitCredentialHandler;
             }
 
             if (DownloadTransferProgress != null)
@@ -151,23 +151,6 @@ namespace LibGit2Sharp
             }
 
             return Proxy.ConvertResultToCancelFlag(shouldContinue);
-        }
-
-        private int GitCredentialHandler(out IntPtr cred, IntPtr url, IntPtr username_from_url, uint types, IntPtr payload)
-        {
-            switch (Credentials.Type)
-            {
-                case CredentialType.Default:
-                    return NativeMethods.git_cred_default_new(out cred);
-                case CredentialType.UsernamePassword:
-                    return NativeMethods.git_cred_userpass_plaintext_new(out cred,
-                        ((UsernamePasswordCredentials)Credentials).Username, ((UsernamePasswordCredentials)Credentials).Password);
-                default:
-                    cred = IntPtr.Zero;
-
-                    Proxy.giterr_set_str(GitErrorCategory.Invalid, String.Format("Unknown credential type {0}", Credentials.Type));
-                    return -1;
-            }
         }
 
         #endregion
