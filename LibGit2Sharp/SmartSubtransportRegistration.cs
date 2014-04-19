@@ -63,7 +63,7 @@ namespace LibGit2Sharp
 
             registration.SubtransportCallback = Marshal.GetFunctionPointerForDelegate(EntryPoints.SubtransportCallback);
 
-            if (typeof(T).GetCustomAttributes(true).Where(s => s.GetType() == typeof(RpcSmartSubtransportAttribute)).FirstOrDefault() != null)
+            if (typeof(T).GetCustomAttributes(true).Any(s => s.GetType() == typeof(RpcSmartSubtransportAttribute)))
             {
                 registration.Rpc = 1;
             }
