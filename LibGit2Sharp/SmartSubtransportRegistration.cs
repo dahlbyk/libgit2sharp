@@ -10,9 +10,16 @@ namespace LibGit2Sharp
     /// under a particular prefix (i.e. "http://") and priority.
     /// </summary>
     /// <typeparam name="T">The type of SmartSubtransport to register</typeparam>
-    public sealed class SmartSubtransportRegistration<T>
+    public class SmartSubtransportRegistration<T>
         where T : SmartSubtransport, new()
     {
+        /// <summary>
+        /// Needed for mocking purposes.
+        /// </summary>
+        protected SmartSubtransportRegistration()
+        {
+        }
+
         /// <summary>
         /// Creates a new native registration for a smart protocol transport
         /// in libgit2.
@@ -21,6 +28,9 @@ namespace LibGit2Sharp
         /// <param name="priority">The priority of the transport; the value must be 2 or larger to override a built-in transport</param>
         internal SmartSubtransportRegistration(string prefix, int priority)
         {
+            Ensure.ArgumentNotNull(prefix, "prefix");
+            Ensure.ArgumentConformsTo(priority, s => s >= 0, "priority");
+
             Prefix = prefix;
             Priority = priority;
             RegistrationPointer = CreateRegistrationPointer();
@@ -30,19 +40,19 @@ namespace LibGit2Sharp
         /// <summary>
         /// The URI prefix (ie "http://") for this transport.
         /// </summary>
-        public string Prefix
+        public virtual string Prefix
         {
             get;
-            private set;
+            protected set;
         }
 
         /// <summary>
         /// The priority of this transport relative to others
         /// </summary>
-        public int Priority
+        public virtual int Priority
         {
             get;
-            private set;
+            protected set;
         }
 
         internal IntPtr RegistrationPointer
@@ -79,8 +89,9 @@ namespace LibGit2Sharp
             return Marshal.GetFunctionPointerForDelegate(EntryPoints.TransportCallback);
         }
 
-        internal void Free()
+        protected internal void Free()
         {
+            Proxy.git_transport_unregister(Prefix, (uint)Priority);
             Marshal.FreeHGlobal(RegistrationPointer);
         }
 

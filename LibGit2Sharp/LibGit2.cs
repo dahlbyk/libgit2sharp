@@ -19,10 +19,21 @@ namespace LibGit2Sharp
         public static SmartSubtransportRegistration<T> RegisterSmartSubtransport<T>(string prefix, int priority)
             where T : SmartSubtransport, new()
         {
-            Ensure.ArgumentNotNull(prefix, "prefix");
-            Ensure.ArgumentConformsTo<int>(priority, s => s >= 0, "priority");
-
             var registration = new SmartSubtransportRegistration<T>(prefix, priority);
+
+            return RegisterSmartSubtransport(registration);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="registration"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static SmartSubtransportRegistration<T> RegisterSmartSubtransport<T>(SmartSubtransportRegistration<T> registration)
+            where T : SmartSubtransport, new()
+        {
+            Ensure.ArgumentNotNull(registration, "registration");
 
             try
             {
@@ -32,28 +43,13 @@ namespace LibGit2Sharp
                     registration.FunctionPointer,
                     registration.RegistrationPointer);
             }
-            catch(Exception)
+            catch (Exception)
             {
-                UnregisterSmartSubtransport(registration);
+                registration.Free();
                 throw;
             }
 
             return registration;
-        }
-
-        /// <summary>
-        /// Unregisters a previously registered <see cref="SmartSubtransport"/>
-        /// as a custom smart-protocol transport with libgit2.
-        /// </summary>
-        /// <typeparam name="T">The type of SmartSubtransport to register</typeparam>
-        /// <param name="registration">The previous registration</param>
-        public static void UnregisterSmartSubtransport<T>(SmartSubtransportRegistration<T> registration)
-            where T : SmartSubtransport, new()
-        {
-            Ensure.ArgumentNotNull(registration, "registration");
-
-            Proxy.git_transport_unregister(registration.Prefix, (uint)registration.Priority);
-            registration.Free();
         }
     }
 }

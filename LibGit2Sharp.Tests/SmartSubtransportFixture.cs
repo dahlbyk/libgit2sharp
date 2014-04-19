@@ -21,14 +21,9 @@ namespace LibGit2Sharp.Tests
             var scd = BuildSelfCleaningDirectory();
             var repoPath = Repository.Init(scd.RootedDirectoryPath);
 
-            SmartSubtransportRegistration<MockSmartSubtransport> httpRegistration = null;
-            SmartSubtransportRegistration<MockSmartSubtransport> httpsRegistration = null;
-
-            try
+            using ((IDisposable)LibGit2.RegisterSmartSubtransport(new MockSmartSubtransportRegistration("http://", 2)))
+            using ((IDisposable)LibGit2.RegisterSmartSubtransport(new MockSmartSubtransportRegistration("https://", 2)))
             {
-                httpRegistration = LibGit2.RegisterSmartSubtransport<MockSmartSubtransport>("http://", 2);
-                httpsRegistration = LibGit2.RegisterSmartSubtransport<MockSmartSubtransport>("https://", 2);
-
                 using (var repo = new Repository(scd.DirectoryPath))
                 {
                     Remote remote = repo.Network.Remotes.Add(remoteName, url);
@@ -59,17 +54,19 @@ namespace LibGit2Sharp.Tests
                     expectedFetchState.CheckUpdatedReferences(repo);
                 }
             }
-            finally
-            {
-                if (httpRegistration != null)
-                {
-                    LibGit2.UnregisterSmartSubtransport(httpRegistration);
-                }
+        }
 
-                if (httpsRegistration != null)
-                {
-                    LibGit2.UnregisterSmartSubtransport(httpsRegistration);
-                }
+        private class MockSmartSubtransportRegistration : SmartSubtransportRegistration<MockSmartSubtransport>, IDisposable
+        {
+            public MockSmartSubtransportRegistration(string prefix, int priority)
+            {
+                Prefix = prefix;
+                Priority = priority;
+            }
+
+            public void Dispose()
+            {
+                Free();
             }
         }
 
